@@ -1,0 +1,115 @@
+.loading-state {
+  padding-top: 180rpx;
+  color: #9c7d8c;
+  text-align: center;
+  font-size: 28rpx;
+}
+
+.room-header {
+  padding: 24rpx 8rpx 8rpx;
+}
+
+.eyebrow {
+  display: block;
+  color: #c24d87;
+  font-size: 24rpx;
+  letter-spacing: 2rpx;
+}
+
+.room-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 16rpx;
+}
+
+.room-title {
+  color: #572b46;
+  font-size: 52rpx;
+  font-weight: 700;
+}
+
+.status-pill {
+  padding: 12rpx 18rpx;
+  border-radius: 999rpx;
+  color: #a43d70;
+  background: #ffe8f2;
+  font-size: 24rpx;
+}
+
+.room-meta {
+  display: block;
+  margin-top: 16rpx;
+  color: #9c7d8c;
+  font-size: 24rpx;
+}
+
+.card-title {
+  display: block;
+  color: #572b46;
+  font-size: 32rpx;
+  font-weight: 700;
+}
+
+.body-text,
+.muted {
+  display: block;
+  margin-top: 14rpx;
+  color: #9c7d8c;
+  font-size: 26rpx;
+  line-height: 1.7;
+}
+
+.state-line {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 24rpx;
+  padding-bottom: 18rpx;
+  border-bottom: 2rpx solid #fff0f6;
+  color: #73445c;
+  font-size: 26rpx;
+}
+
+.main-button {
+  margin-top: 22rpx;
+}
+
+.invite-path {
+  display: block;
+  box-sizing: border-box;
+  margin-top: 18rpx;
+  padding: 18rpx;
+  border-radius: 14rpx;
+  color: #a43d70;
+  background: #fff4f8;
+  font-size: 22rpx;
+  word-break: break-all;
+}
+
+.error-card {
+  margin-top: 160rpx;
+  text-align: center;
+}
+
+.error-title {
+  display: block;
+  color: #c14468;
+  font-size: 34rpx;
+  font-weight: 700;
+}
+
+.error-detail {
+  display: block;
+  margin-top: 20rpx;
+  color: #c14468;
+  font-size: 26rpx;
+}
+
+.error-card button {
+  margin-top: 28rpx;
+}
+
+.privacy-card {
+  border: 2rpx solid #f7d3e2;
+  background: #fffdfd;
+}

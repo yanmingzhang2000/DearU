@@ -1,0 +1,90 @@
+.hero {
+  padding: 24rpx 8rpx 12rpx;
+}
+
+.eyebrow {
+  display: block;
+  color: #c24d87;
+  font-size: 24rpx;
+  letter-spacing: 2rpx;
+}
+
+.title {
+  display: block;
+  margin-top: 18rpx;
+  color: #572b46;
+  font-size: 58rpx;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.subtitle {
+  display: block;
+  margin-top: 18rpx;
+  color: #9c7d8c;
+  font-size: 28rpx;
+  line-height: 1.7;
+}
+
+.section-title {
+  display: block;
+  color: #572b46;
+  font-size: 32rpx;
+  font-weight: 700;
+}
+
+.body-text,
+.hint {
+  display: block;
+  margin-top: 14rpx;
+  color: #9c7d8c;
+  font-size: 26rpx;
+  line-height: 1.7;
+}
+
+.main-button {
+  margin-top: 28rpx;
+}
+
+.dev-card {
+  border: 2rpx solid #f5c2da;
+  background: #fff4f8;
+}
+
+.picker-value {
+  box-sizing: border-box;
+  margin-top: 20rpx;
+  padding: 22rpx 24rpx;
+  border-radius: 18rpx;
+  color: #713957;
+  background: #ffffff;
+  font-size: 28rpx;
+}
+
+.picker-arrow {
+  float: right;
+  color: #d45c94;
+}
+
+.dev-card button {
+  margin-top: 18rpx;
+}
+
+.token-input {
+  box-sizing: border-box;
+  margin-top: 22rpx;
+  padding: 22rpx 24rpx;
+  border: 2rpx solid #f3d1e1;
+  border-radius: 18rpx;
+  color: #572b46;
+  background: #fffafd;
+  font-size: 26rpx;
+}
+
+.message {
+  display: block;
+  margin: 28rpx 8rpx 0;
+  color: #c14468;
+  font-size: 26rpx;
+  line-height: 1.6;
+}

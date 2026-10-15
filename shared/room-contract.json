@@ -1,0 +1,24 @@
+{
+  "version": "v1",
+  "occasion": "birthday",
+  "statuses": ["draft", "collaborating", "sealed", "awaiting", "completed"],
+  "routes": {
+    "draft": "edit",
+    "collaborating": "edit",
+    "sealed": "waiting",
+    "awaiting": "waiting",
+    "completed": "replay"
+  },
+  "roles": ["creator", "invitee"],
+  "events": [
+    "room_created",
+    "invite_sent",
+    "invitee_entered_edit",
+    "invitee_ready",
+    "room_sealed",
+    "invitee_entered_celebrate",
+    "celebration_completed",
+    "user_expressed",
+    "invitee_created_room"
+  ]
+}

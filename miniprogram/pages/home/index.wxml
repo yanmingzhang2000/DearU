@@ -1,0 +1,31 @@
+<view class="page">
+  <view class="hero">
+    <text class="eyebrow">DearU · v1 最小原型</text>
+    <text class="title">一起做一块蛋糕</text>
+    <text class="subtitle">给异地的 TA，一场只有你们能完成的生日仪式。</text>
+  </view>
+
+  <view wx:if="{{devMode}}" class="card dev-card">
+    <view class="section-title">开发身份</view>
+    <picker mode="selector" range="{{identityLabels}}" value="{{identityIndex}}" bindchange="onIdentityChange">
+      <view class="picker-value">{{identityLabels[identityIndex]}} <text class="picker-arrow">⌄</text></view>
+    </picker>
+    <button class="secondary-button" loading="{{loading}}" bindtap="switchDevIdentity">切换开发身份</button>
+    <text class="hint">仅开发工具可见。生产环境使用微信登录，房主本人不会绑定为寿星，第三人会被拒绝访问。</text>
+  </view>
+
+  <view class="card">
+    <view class="section-title">从零开始</view>
+    <text class="body-text">建一个生日房间，先由房主打底，再把唯一邀请链接发给寿星一起完成。</text>
+    <button class="primary-button main-button" loading="{{loading}}" bindtap="createRoom">创建生日房间</button>
+  </view>
+
+  <view class="card">
+    <view class="section-title">已有邀请</view>
+    <text class="body-text">粘贴邀请 token。房间状态由服务端读取，链接本身不携带状态。</text>
+    <input class="token-input" value="{{token}}" maxlength="128" placeholder="粘贴邀请 token" bindinput="onTokenInput" />
+    <button class="secondary-button main-button" loading="{{loading}}" bindtap="enterRoom">进入房间</button>
+  </view>
+
+  <text wx:if="{{message}}" class="message">{{message}}</text>
+</view>

@@ -1,0 +1,14 @@
+{
+  "name": "dearu-v1-server",
+  "version": "0.1.0",
+  "private": true,
+  "description": "DearU v1 room prototype API",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

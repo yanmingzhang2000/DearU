@@ -1,0 +1,58 @@
+<view class="page">
+  <view wx:if="{{loading}}" class="loading-state">正在读取房间…</view>
+
+  <view wx:elif="{{error}}" class="card error-card">
+    <text class="error-title">链接无效或无权访问</text>
+    <text class="error-detail">{{error}}</text>
+    <text class="muted">为保护你们的私密内容，非房主和寿星不会返回任何房间信息。</text>
+    <button class="secondary-button" bindtap="loadRoom">重新尝试</button>
+  </view>
+
+  <block wx:else>
+    <view class="room-header">
+      <text class="eyebrow">DearU · 生日房间</text>
+      <view class="room-title-row">
+        <text class="room-title">你们的蛋糕</text>
+        <text class="status-pill">{{statusLabel}}</text>
+      </view>
+      <text class="room-meta">当前身份：{{roleLabel}} · 路由：{{route}}</text>
+    </view>
+
+    <view class="card privacy-card">
+      <text class="card-title">这是你们两个人的房间</text>
+      <text class="muted">链接只负责找到房间，真实状态和内容都保存在服务端。</text>
+    </view>
+
+    <view wx:if="{{room.status === 'draft' || room.status === 'collaborating'}}" class="card">
+      <text class="card-title">共同制作 · 最小原型</text>
+      <text class="body-text">画布和品类/口味选择将在下一步接入。本阶段先验证房间创建、寿星绑定和异步状态读取。</text>
+      <view class="state-line"><text>寿星身份</text><text>{{room.inviteeId ? '已绑定' : '等待 TA 进入'}}</text></view>
+      <view class="state-line"><text>寿星确认</text><text>{{inviteeReady ? '已选好' : '未确认'}}</text></view>
+      <button wx:if="{{canReady}}" class="primary-button main-button" bindtap="markReady">我选好了</button>
+      <button wx:if="{{canSeal}}" class="primary-button main-button" bindtap="sealRoom">封装礼盒</button>
+    </view>
+
+    <view wx:if="{{room.status === 'sealed' || room.status === 'awaiting'}}" class="card celebration-card">
+      <text class="card-title">等待庆祝</text>
+      <text class="body-text">打开微信通话，双方各自点“开始庆祝”。v1 不做实时同屏，也不会自动开播。</text>
+      <view class="state-line"><text>房主</text><text>{{creatorStarted ? '已开始' : '等待开始'}} / {{creatorCompleted ? '已完成' : '未完成'}}</text></view>
+      <view class="state-line"><text>寿星</text><text>{{inviteeStarted ? '已开始' : '等待开始'}} / {{inviteeCompleted ? '已完成' : '未完成'}}</text></view>
+      <button wx:if="{{canCelebrate}}" class="primary-button main-button" bindtap="startCelebration">开始庆祝</button>
+      <button wx:if="{{canComplete}}" class="secondary-button main-button" bindtap="completeCelebration">完成本地庆祝</button>
+    </view>
+
+    <view wx:if="{{room.status === 'completed'}}" class="card celebration-card">
+      <text class="card-title">庆祝完成</text>
+      <text class="body-text">这场仪式将在保留窗口内可重看。现在可以留下“好甜”的反馈。</text>
+      <button class="secondary-button main-button" bindtap="reportExpression">好甜，留下反馈</button>
+    </view>
+
+    <view wx:if="{{canSendInvite}}" class="card invite-card">
+      <text class="card-title">唯一邀请链接</text>
+      <text class="muted">建房即生成，封装后不再生成第二个“分享给 TA”。</text>
+      <text class="invite-path">{{invitePath}}</text>
+      <button class="secondary-button main-button" bindtap="sendInvite">复制邀请路径</button>
+      <button class="secondary-button main-button" open-type="share">发给 TA</button>
+    </view>
+  </block>
+</view>

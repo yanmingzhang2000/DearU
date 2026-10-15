@@ -1,0 +1,9 @@
+{
+  "desc": "DearU v1 页面索引",
+  "rules": [
+    {
+      "action": "allow",
+      "page": "*"
+    }
+  ]
+}

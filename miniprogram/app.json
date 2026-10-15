@@ -1,0 +1,14 @@
+{
+  "pages": [
+    "pages/home/index",
+    "pages/room/index"
+  ],
+  "window": {
+    "navigationBarTitleText": "亲爱的你",
+    "navigationBarBackgroundColor": "#fff8fb",
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#fff8fb",
+    "backgroundTextStyle": "light"
+  },
+  "sitemapLocation": "sitemap.json"
+}
