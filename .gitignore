@@ -1,0 +1,5 @@
+_site/
+Thumbs.db
+desktop.ini
+*.log
+.DS_Store
