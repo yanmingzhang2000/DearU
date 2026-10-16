@@ -1,3 +1,8 @@
 {
-  "navigationBarTitleText": "生日房间"
+  "navigationBarTitleText": "生日房间",
+  "usingComponents": {
+    "cake-editor": "/components/cake-editor/index",
+    "sticker-drawer": "/components/sticker-drawer/index",
+    "celebration-ritual": "/components/celebration-ritual/index"
+  }
 }

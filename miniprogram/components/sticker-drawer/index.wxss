@@ -1,0 +1,83 @@
+.sticker-drawer {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1000;
+  display: none;
+}
+
+.sticker-drawer.visible {
+  display: block;
+}
+
+.drawer-mask {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.drawer-content {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  max-height: 60%;
+  background: #fff;
+  border-radius: 24rpx 24rpx 0 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.drawer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 32rpx 32rpx 20rpx;
+  border-bottom: 2rpx solid #f7d3e2;
+}
+
+.drawer-title {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #572b46;
+}
+
+.close-btn {
+  font-size: 48rpx;
+  color: #9c7d8c;
+  line-height: 1;
+}
+
+.sticker-list {
+  flex: 1;
+  padding: 20rpx;
+}
+
+.sticker-item {
+  display: flex;
+  align-items: center;
+  padding: 24rpx;
+  border-radius: 16rpx;
+  margin-bottom: 16rpx;
+  background: #fff8fb;
+}
+
+.sticker-item:active {
+  background: #fff0f6;
+}
+
+.sticker-preview {
+  width: 80rpx;
+  height: 80rpx;
+  margin-right: 20rpx;
+}
+
+.sticker-name {
+  font-size: 28rpx;
+  color: #73445c;
+}

@@ -24,13 +24,29 @@
     </view>
 
     <view wx:if="{{room.status === 'draft' || room.status === 'collaborating'}}" class="card">
-      <text class="card-title">共同制作 · 最小原型</text>
-      <text class="body-text">画布和品类/口味选择将在下一步接入。本阶段先验证房间创建、寿星绑定和异步状态读取。</text>
+      <text class="card-title">共同制作蛋糕</text>
+      <text class="body-text">{{role === 'creator' ? '先打底，寿星进房后会补口味和装饰。' : '选你喜欢的底胚口味，画点装饰，写句祝福。'}}</text>
+
+      <cake-editor
+        id="cakeEditor"
+        initial-state="{{room.cakeState}}"
+        readonly="{{!canEditCake}}"
+        bind:change="onCakeChange">
+      </cake-editor>
+
+      <button wx:if="{{canEditCake}}" class="secondary-button main-button" bindtap="openStickerDrawer">添加装饰</button>
+
       <view class="state-line"><text>寿星身份</text><text>{{room.inviteeId ? '已绑定' : '等待 TA 进入'}}</text></view>
       <view class="state-line"><text>寿星确认</text><text>{{inviteeReady ? '已选好' : '未确认'}}</text></view>
       <button wx:if="{{canReady}}" class="primary-button main-button" bindtap="markReady">我选好了</button>
       <button wx:if="{{canSeal}}" class="primary-button main-button" bindtap="sealRoom">封装礼盒</button>
     </view>
+
+    <sticker-drawer
+      visible="{{stickerDrawerVisible}}"
+      bind:select="onStickerSelect"
+      bind:close="onStickerDrawerClose">
+    </sticker-drawer>
 
     <view wx:if="{{room.status === 'sealed' || room.status === 'awaiting'}}" class="card celebration-card">
       <text class="card-title">等待庆祝</text>
@@ -38,8 +54,12 @@
       <view class="state-line"><text>房主</text><text>{{creatorStarted ? '已开始' : '等待开始'}} / {{creatorCompleted ? '已完成' : '未完成'}}</text></view>
       <view class="state-line"><text>寿星</text><text>{{inviteeStarted ? '已开始' : '等待开始'}} / {{inviteeCompleted ? '已完成' : '未完成'}}</text></view>
       <button wx:if="{{canCelebrate}}" class="primary-button main-button" bindtap="startCelebration">开始庆祝</button>
-      <button wx:if="{{canComplete}}" class="secondary-button main-button" bindtap="completeCelebration">完成本地庆祝</button>
     </view>
+
+    <celebration-ritual
+      visible="{{ritualVisible}}"
+      bind:complete="onRitualComplete">
+    </celebration-ritual>
 
     <view wx:if="{{room.status === 'completed'}}" class="card celebration-card">
       <text class="card-title">庆祝完成</text>

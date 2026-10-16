@@ -1,0 +1,52 @@
+<view wx:if="{{visible}}" class="ritual-overlay">
+  <view class="ritual-scene">
+    <!-- 状态：lighting（点蜡烛）/ singing（唱歌+歌词）/ blowing（吹蜡烛）/ wishing（许愿彩带）/ complete -->
+    
+    <!-- 背景：暗夜渐变 -->
+    <view class="dark-gradient"></view>
+    
+    <!-- 蜡烛渲染层 -->
+    <canvas 
+      wx:if="{{stage === 'lighting' || stage === 'singing' || stage === 'blowing'}}"
+      type="2d" 
+      id="candle-canvas" 
+      class="candle-canvas"
+      catchtouchstart="onCandleTouch">
+    </canvas>
+    
+    <!-- 歌词高亮（singing 阶段） -->
+    <view wx:if="{{stage === 'singing'}}" class="lyrics-panel">
+      <view wx:for="{{lyrics}}" wx:key="index"
+            class="lyric-line {{activeLyricIndex === index ? 'active' : ''}}">
+        {{item.text}}
+      </view>
+    </view>
+    
+    <!-- 吹蜡烛提示（blowing 阶段） -->
+    <view wx:if="{{stage === 'blowing'}}" class="blow-hint">
+      <text class="blow-text">{{blowHintText}}</text>
+      <text class="blow-fallback-hint">麦克风检测失败？点击火焰也可熄灭</text>
+    </view>
+    
+    <!-- 彩带渲染层（wishing 阶段） -->
+    <canvas 
+      wx:if="{{stage === 'wishing' || stage === 'complete'}}"
+      type="2d" 
+      id="confetti-canvas" 
+      class="confetti-canvas">
+    </canvas>
+    
+    <!-- 许愿文字（wishing 阶段） -->
+    <view wx:if="{{stage === 'wishing'}}" class="wishing-panel">
+      <text class="wish-title">生日快乐</text>
+      <text class="wish-subtitle">愿你所愿皆成真</text>
+    </view>
+    
+    <!-- 完成按钮（wishing / complete 阶段） -->
+    <button wx:if="{{stage === 'wishing' || stage === 'complete'}}" 
+            class="ritual-done-btn" 
+            bindtap="onRitualComplete">
+      庆祝完成
+    </button>
+  </view>
+</view>

@@ -19,11 +19,14 @@ Page({
     canSeal: false,
     canCelebrate: false,
     canComplete: false,
+    canEditCake: false,
     inviteeReady: false,
     creatorStarted: false,
     inviteeStarted: false,
     creatorCompleted: false,
-    inviteeCompleted: false
+    inviteeCompleted: false,
+    stickerDrawerVisible: false,
+    ritualVisible: false
   },
 
   onLoad(options) {
@@ -86,6 +89,8 @@ Page({
       canSeal: role === 'creator' && status === 'collaborating' && !!room.inviteeReadyAt,
       canCelebrate: (role === 'creator' || role === 'invitee') && status === 'awaiting',
       canComplete: (role === 'creator' || role === 'invitee') && status === 'awaiting',
+      canEditCake: (status === 'draft' && role === 'creator') ||
+        (status === 'collaborating' && (role === 'creator' || role === 'invitee')),
       inviteeReady: !!room.inviteeReadyAt,
       creatorStarted: !!celebration.creatorStartedAt,
       inviteeStarted: !!celebration.inviteeStartedAt,
@@ -133,10 +138,14 @@ Page({
   },
 
   async startCelebration() {
-    await this.action('/rooms/' + this.data.room.roomId + '/celebration/start', 'POST', {}, '可以开始庆祝了');
+    // 先告知后端"已开始"（记 started_at），再弹出全屏仪式
+    await this.action('/rooms/' + this.data.room.roomId + '/celebration/start', 'POST', {}, '');
+    this.setData({ ritualVisible: true });
   },
 
-  async completeCelebration() {
+  async onRitualComplete() {
+    // 全屏仪式走完（点烛→唱歌→吹烛→彩带许愿），关闭仪式并上报完成
+    this.setData({ ritualVisible: false });
     await this.action('/rooms/' + this.data.room.roomId + '/celebration/complete', 'POST', { duration: 0 }, '已记录本次庆祝');
   },
 
@@ -164,5 +173,63 @@ Page({
       user_role: this.data.role
     });
     wx.showToast({ title: '谢谢你留下这份甜', icon: 'none' });
+  },
+
+  // ========== 蛋糕编辑器 ==========
+  onCakeChange(e) {
+    if (!this.data.canEditCake) return;
+    const cakeState = e.detail.cakeState;
+    this._pendingCakeState = cakeState;
+    this._scheduleCakeSave();
+  },
+
+  // debounce 保存：避免拖拽/涂鸦每帧都发请求，停手 800ms 后落后端
+  _scheduleCakeSave() {
+    if (this._saveTimer) {
+      clearTimeout(this._saveTimer);
+    }
+    this._saveTimer = setTimeout(() => {
+      this._saveCakeState();
+    }, 800);
+  },
+
+  async _saveCakeState() {
+    if (!this.data.room || !this._pendingCakeState) return;
+    const cakeState = this._pendingCakeState;
+    try {
+      await api.request('/rooms/' + this.data.room.roomId + '/cake', {
+        method: 'PUT',
+        data: { cakeState: cakeState }
+      });
+    } catch (error) {
+      // 保存失败不打断编辑体验，只提示，不回滚本地状态
+      wx.showToast({ title: '蛋糕未保存，请检查网络', icon: 'none' });
+    }
+  },
+
+  openStickerDrawer() {
+    if (!this.data.canEditCake) return;
+    this.setData({ stickerDrawerVisible: true });
+  },
+
+  onStickerDrawerClose() {
+    this.setData({ stickerDrawerVisible: false });
+  },
+
+  onStickerSelect(e) {
+    const stickerType = e.detail.stickerType;
+    const editor = this.selectComponent('#cakeEditor');
+    if (editor) {
+      // 新贴纸放在画布中心
+      editor.addSticker(stickerType, 0, 0);
+    }
+  },
+
+  onUnload() {
+    // 页面卸载前确保最后一次编辑被保存（跳过 debounce 等待）
+    if (this._saveTimer) {
+      clearTimeout(this._saveTimer);
+      this._saveCakeState();
+    }
   }
 });

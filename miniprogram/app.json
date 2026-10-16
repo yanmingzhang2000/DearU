@@ -10,5 +10,10 @@
     "backgroundColor": "#fff8fb",
     "backgroundTextStyle": "light"
   },
-  "sitemapLocation": "sitemap.json"
+  "sitemapLocation": "sitemap.json",
+  "permission": {
+    "scope.record": {
+      "desc": "用于吹蜡烛仪式的麦克风检测，拒绝授权可改用点击火焰熄灭"
+    }
+  }
 }

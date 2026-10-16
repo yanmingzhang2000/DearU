@@ -1,0 +1,18 @@
+<view class="sticker-drawer {{visible ? 'visible' : ''}}">
+  <view class="drawer-mask" catchtap="onClose"></view>
+  <view class="drawer-content">
+    <view class="drawer-header">
+      <text class="drawer-title">装饰贴纸</text>
+      <text class="close-btn" catchtap="onClose">✕</text>
+    </view>
+    <scroll-view class="sticker-list" scroll-y>
+      <view wx:for="{{stickers}}" wx:key="type"
+            class="sticker-item"
+            data-sticker="{{item.type}}"
+            bindtap="onStickerTap">
+        <image class="sticker-preview" src="/assets/stickers/{{item.type}}.png" mode="aspectFit"></image>
+        <text class="sticker-name">{{item.label}}</text>
+      </view>
+    </scroll-view>
+  </view>
+</view>

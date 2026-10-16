@@ -7,3 +7,6 @@ node_modules/
 .env.*
 !.env.example
 server/data/*.json
+server/data/*.db
+server/data/*.db-*
+

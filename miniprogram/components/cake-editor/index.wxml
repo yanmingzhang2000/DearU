@@ -1,0 +1,65 @@
+<view class="cake-editor">
+  <!-- 编辑区 -->
+  <view class="editor-canvas-container">
+    <!-- 底胚背景 -->
+    <image class="cake-base" src="/assets/cakes/{{cakeState.base}}.png" mode="aspectFit"></image>
+    
+    <!-- 贴纸层 -->
+    <view wx:for="{{stickerLayers}}" wx:key="id" 
+          class="sticker-layer {{selectedLayerId === item.id ? 'selected' : ''}}"
+          style="transform: translate({{item.x}}rpx, {{item.y}}rpx) rotate({{item.rotate}}deg) scale({{item.scale}}); z-index: {{item.zIndex}};"
+          data-layer-id="{{item.id}}"
+          catchtouchstart="onStickerTouchStart"
+          catchtouchmove="onStickerTouchMove"
+          catchtouchend="onStickerTouchEnd">
+      <image wx:if="{{item.type === 'sticker'}}" class="sticker-img" src="/assets/stickers/{{item.stickerType}}.png" mode="widthFix"></image>
+      <text wx:if="{{item.type === 'text'}}" class="text-content" style="color: {{item.color}};">{{item.text}}</text>
+    </view>
+    
+    <!-- Canvas 涂鸦层 -->
+    <canvas 
+      type="2d" 
+      id="stroke-canvas" 
+      class="stroke-canvas"
+      catchtouchstart="onCanvasTouchStart"
+      catchtouchmove="onCanvasTouchMove"
+      catchtouchend="onCanvasTouchEnd">
+    </canvas>
+  </view>
+
+  <!-- 底胚切换工具栏 -->
+  <view class="base-selector">
+    <text class="toolbar-label">蛋糕底胚</text>
+    <scroll-view class="base-options" scroll-x>
+      <view wx:for="{{baseTypes}}" wx:key="value"
+            class="base-option {{cakeState.base === item.value ? 'active' : ''}}"
+            data-base="{{item.value}}"
+            bindtap="onBaseChange">
+        <image class="base-thumb" src="/assets/cakes/{{item.value}}_thumb.png" mode="aspectFit"></image>
+        <text class="base-label">{{item.label}}</text>
+      </view>
+    </scroll-view>
+  </view>
+
+  <!-- 笔刷工具栏 -->
+  <view class="brush-selector">
+    <text class="toolbar-label">奶油笔刷</text>
+    <view class="brush-options">
+      <view wx:for="{{brushTypes}}" wx:key="value"
+            class="brush-option {{currentBrush === item.value ? 'active' : ''}}"
+            data-brush="{{item.value}}"
+            bindtap="onBrushChange">
+        <text class="brush-icon">{{item.icon}}</text>
+        <text class="brush-label">{{item.label}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 操作按钮栏 -->
+  <view class="action-bar">
+    <button class="action-btn" disabled="{{!canUndo}}" bindtap="onUndo">撤销</button>
+    <button class="action-btn" disabled="{{!canRedo}}" bindtap="onRedo">重做</button>
+    <button class="action-btn" disabled="{{!selectedLayerId}}" bindtap="onDeleteLayer">删除</button>
+    <button class="action-btn danger" bindtap="onClear">清空</button>
+  </view>
+</view>

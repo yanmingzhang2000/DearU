@@ -1,0 +1,175 @@
+.cake-editor {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+/* 编辑区容器 */
+.editor-canvas-container {
+  position: relative;
+  width: 100%;
+  height: 600rpx;
+  background: #fff8fb;
+  border-radius: 24rpx;
+  overflow: hidden;
+  border: 2rpx solid #f7d3e2;
+}
+
+.cake-base {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
+
+/* 贴纸层 */
+.sticker-layer {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 120rpx;
+  height: 120rpx;
+  margin-left: -60rpx;
+  margin-top: -60rpx;
+  transform-origin: center center;
+  touch-action: none;
+}
+
+.sticker-layer.selected {
+  outline: 3rpx dashed #c24d87;
+  border-radius: 8rpx;
+}
+
+.sticker-img {
+  width: 100%;
+  height: 100%;
+}
+
+.text-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  font-size: 28rpx;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Canvas 涂鸦层 */
+.stroke-canvas {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 10;
+}
+
+/* 底胚选择器 */
+.base-selector {
+  margin-top: 20rpx;
+}
+
+.toolbar-label {
+  display: block;
+  color: #9c7d8c;
+  font-size: 24rpx;
+  margin-bottom: 12rpx;
+}
+
+.base-options {
+  display: flex;
+  white-space: nowrap;
+}
+
+.base-option {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  margin-right: 20rpx;
+  padding: 12rpx;
+  border-radius: 16rpx;
+  border: 2rpx solid transparent;
+}
+
+.base-option.active {
+  border-color: #c24d87;
+  background: #fff0f6;
+}
+
+.base-thumb {
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: 12rpx;
+}
+
+.base-label {
+  margin-top: 8rpx;
+  font-size: 22rpx;
+  color: #73445c;
+}
+
+/* 笔刷选择器 */
+.brush-selector {
+  margin-top: 24rpx;
+}
+
+.brush-options {
+  display: flex;
+}
+
+.brush-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  padding: 16rpx;
+  border-radius: 16rpx;
+  border: 2rpx solid transparent;
+}
+
+.brush-option.active {
+  border-color: #c24d87;
+  background: #fff0f6;
+}
+
+.brush-icon {
+  font-size: 32rpx;
+}
+
+.brush-label {
+  margin-top: 6rpx;
+  font-size: 22rpx;
+  color: #73445c;
+}
+
+/* 操作按钮栏 */
+.action-bar {
+  display: flex;
+  margin-top: 24rpx;
+  gap: 12rpx;
+}
+
+.action-btn {
+  flex: 1;
+  font-size: 24rpx;
+  padding: 0;
+  height: 72rpx;
+  line-height: 72rpx;
+  border-radius: 36rpx;
+  background: #fff0f6;
+  color: #a43d70;
+  border: none;
+}
+
+.action-btn[disabled] {
+  opacity: 0.4;
+}
+
+.action-btn.danger {
+  background: #ffe5e5;
+  color: #c14468;
+}

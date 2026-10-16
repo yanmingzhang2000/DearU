@@ -6,9 +6,16 @@
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "db:init": "node scripts/init-db.js",
     "test": "node --test"
   },
   "engines": {
     "node": ">=20"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.2",
+    "nanoid": "^3.3.7"
   }
 }
