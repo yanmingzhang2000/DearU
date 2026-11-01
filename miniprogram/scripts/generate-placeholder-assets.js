@@ -89,20 +89,30 @@ function crc32(buf) {
 const cakesDir = path.join(__dirname, '../assets/cakes');
 const stickersDir = path.join(__dirname, '../assets/stickers');
 
-// 4 款底胚占位色（后续替换为真实矢量图）
-const cakeColors = {
-  cream: [255, 229, 236, 255],    // 奶油粉
-  mille: [255, 213, 128, 255],    // 千层黄
-  mousse: [200, 162, 200, 255],   // 慕斯紫
-  basque: [139, 94, 60, 255]      // 巴斯克棕
+// 款式 × 口味 矩阵（4款 × 5口味 + basque 原味 = 16 张）
+const STYLES = ['cream', 'mille', 'mousse', 'basque'];
+const FLAVORS = ['vanilla', 'strawberry', 'matcha', 'chocolate', 'mango'];
+
+const FLAVOR_COLORS = {
+  vanilla:    [255, 248, 231, 255],  // 香草白
+  strawberry: [255, 182, 193, 255],  // 草莓粉
+  matcha:     [168, 213, 162, 255],  // 抹茶绿
+  chocolate:  [139, 90, 60, 255],    // 巧克力棕
+  mango:      [255, 213, 128, 255],  // 芒果橙黄
+  original:   [139, 94, 60, 255]     // 巴斯克焦棕（仅 original）
 };
 
-Object.entries(cakeColors).forEach(([name, color]) => {
-  const png = createSolidPNG(400, 400, color);
-  fs.writeFileSync(path.join(cakesDir, `${name}.png`), png);
-  const thumbPng = createSolidPNG(100, 100, color);
-  fs.writeFileSync(path.join(cakesDir, `${name}_thumb.png`), thumbPng);
-  console.log(`✅ ${name}.png / ${name}_thumb.png`);
+STYLES.forEach(style => {
+  const flavors = style === 'basque' ? ['original'] : FLAVORS;
+  flavors.forEach(flavor => {
+    const color = FLAVOR_COLORS[flavor];
+    const base = `${style}_${flavor}`;
+    const png = createSolidPNG(400, 400, color);
+    fs.writeFileSync(path.join(cakesDir, `${base}.png`), png);
+    const thumbPng = createSolidPNG(100, 100, color);
+    fs.writeFileSync(path.join(cakesDir, `${base}_thumb.png`), thumbPng);
+    console.log(`✅ ${base}.png / ${base}_thumb.png`);
+  });
 });
 
 // 装饰贴纸占位色

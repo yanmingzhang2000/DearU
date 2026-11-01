@@ -5,13 +5,15 @@ const cakeEditor = require('../utils/cake-editor');
 
 test('createEmptyCake creates valid initial state', () => {
   const state = cakeEditor.createEmptyCake();
-  assert.strictEqual(state.base, cakeEditor.BASE_TYPES.CREAM);
+  assert.strictEqual(state.style, cakeEditor.STYLES.CREAM);
+  assert.strictEqual(state.flavor, cakeEditor.FLAVORS.VANILLA);
   assert.deepStrictEqual(state.layers, []);
 });
 
-test('createEmptyCake accepts custom base type', () => {
-  const state = cakeEditor.createEmptyCake(cakeEditor.BASE_TYPES.MOUSSE);
-  assert.strictEqual(state.base, cakeEditor.BASE_TYPES.MOUSSE);
+test('createEmptyCake accepts custom style and flavor', () => {
+  const state = cakeEditor.createEmptyCake(cakeEditor.STYLES.MOUSSE, cakeEditor.FLAVORS.MATCHA);
+  assert.strictEqual(state.style, cakeEditor.STYLES.MOUSSE);
+  assert.strictEqual(state.flavor, cakeEditor.FLAVORS.MATCHA);
 });
 
 test('addSticker appends a sticker layer with correct zIndex', () => {
@@ -83,10 +85,16 @@ test('removeLayer removes layer and reindexes zIndex', () => {
   assert.strictEqual(state.layers[1].zIndex, 1); // 重新分配后应为 1，不是原来的 2
 });
 
-test('changeBase updates base type', () => {
+test('changeStyle updates style and changeFlavor updates flavor', () => {
   const state = cakeEditor.createEmptyCake();
-  cakeEditor.changeBase(state, cakeEditor.BASE_TYPES.BASQUE);
-  assert.strictEqual(state.base, cakeEditor.BASE_TYPES.BASQUE);
+  cakeEditor.changeStyle(state, cakeEditor.STYLES.BASQUE);
+  assert.strictEqual(state.style, cakeEditor.STYLES.BASQUE);
+  assert.strictEqual(state.flavor, cakeEditor.FLAVORS.ORIGINAL);
+  cakeEditor.changeFlavor(state, cakeEditor.FLAVORS.MATCHA);
+  assert.strictEqual(state.flavor, cakeEditor.FLAVORS.ORIGINAL);
+  cakeEditor.changeStyle(state, cakeEditor.STYLES.CREAM);
+  cakeEditor.changeFlavor(state, cakeEditor.FLAVORS.MATCHA);
+  assert.strictEqual(state.flavor, cakeEditor.FLAVORS.MATCHA);
 });
 
 test('generateLayerId produces unique ids', () => {
@@ -103,23 +111,25 @@ test('EditorHistory: push and undo restores previous state', () => {
   const state1 = cakeEditor.createEmptyCake();
   history.push(state1);
 
-  const state2 = cakeEditor.createEmptyCake(cakeEditor.BASE_TYPES.MOUSSE);
+  const state2 = cakeEditor.createEmptyCake(cakeEditor.STYLES.MOUSSE, cakeEditor.FLAVORS.MATCHA);
   history.push(state2);
 
   assert.strictEqual(history.canUndo(), true);
   const restored = history.undo();
-  assert.strictEqual(restored.base, cakeEditor.BASE_TYPES.CREAM);
+  assert.strictEqual(restored.style, cakeEditor.STYLES.CREAM);
+  assert.strictEqual(restored.flavor, cakeEditor.FLAVORS.VANILLA);
 });
 
 test('EditorHistory: redo restores undone state', () => {
   const history = new cakeEditor.EditorHistory();
-  history.push(cakeEditor.createEmptyCake(cakeEditor.BASE_TYPES.CREAM));
-  history.push(cakeEditor.createEmptyCake(cakeEditor.BASE_TYPES.MOUSSE));
+  history.push(cakeEditor.createEmptyCake(cakeEditor.STYLES.CREAM, cakeEditor.FLAVORS.VANILLA));
+  history.push(cakeEditor.createEmptyCake(cakeEditor.STYLES.MOUSSE, cakeEditor.FLAVORS.MATCHA));
 
   history.undo();
   assert.strictEqual(history.canRedo(), true);
   const redone = history.redo();
-  assert.strictEqual(redone.base, cakeEditor.BASE_TYPES.MOUSSE);
+  assert.strictEqual(redone.style, cakeEditor.STYLES.MOUSSE);
+  assert.strictEqual(redone.flavor, cakeEditor.FLAVORS.MATCHA);
 });
 
 test('EditorHistory: canUndo/canRedo boundaries', () => {
@@ -131,21 +141,21 @@ test('EditorHistory: canUndo/canRedo boundaries', () => {
   assert.strictEqual(history.canUndo(), false); // 只有一个快照，不能再往前
   assert.strictEqual(history.canRedo(), false);
 
-  history.push(cakeEditor.createEmptyCake(cakeEditor.BASE_TYPES.MILLE));
+  history.push(cakeEditor.createEmptyCake(cakeEditor.STYLES.MILLE, cakeEditor.FLAVORS.VANILLA));
   assert.strictEqual(history.canUndo(), true);
   assert.strictEqual(history.canRedo(), false);
 });
 
 test('EditorHistory: push after undo truncates redo branch', () => {
   const history = new cakeEditor.EditorHistory();
-  history.push(cakeEditor.createEmptyCake(cakeEditor.BASE_TYPES.CREAM));
-  history.push(cakeEditor.createEmptyCake(cakeEditor.BASE_TYPES.MOUSSE));
+  history.push(cakeEditor.createEmptyCake(cakeEditor.STYLES.CREAM, cakeEditor.FLAVORS.VANILLA));
+  history.push(cakeEditor.createEmptyCake(cakeEditor.STYLES.MOUSSE, cakeEditor.FLAVORS.MATCHA));
   history.undo(); // 回到 CREAM，MOUSSE 变为可 redo
 
   assert.strictEqual(history.canRedo(), true);
 
   // 推入新状态，应该截断 MOUSSE 分支
-  history.push(cakeEditor.createEmptyCake(cakeEditor.BASE_TYPES.BASQUE));
+  history.push(cakeEditor.createEmptyCake(cakeEditor.STYLES.BASQUE, cakeEditor.FLAVORS.ORIGINAL));
   assert.strictEqual(history.canRedo(), false);
 });
 

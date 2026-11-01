@@ -9,4 +9,6 @@ node_modules/
 server/data/*.json
 server/data/*.db
 server/data/*.db-*
+# 微信开发者工具本机私有配置
+project.private.config.json
 

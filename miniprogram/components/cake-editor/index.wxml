@@ -2,7 +2,7 @@
   <!-- 编辑区 -->
   <view class="editor-canvas-container">
     <!-- 底胚背景 -->
-    <image class="cake-base" src="/assets/cakes/{{cakeState.base}}.png" mode="aspectFit"></image>
+    <image class="cake-base" src="/assets/cakes/{{cakeState.style}}_{{cakeState.flavor}}.png" mode="aspectFit"></image>
     
     <!-- 贴纸层 -->
     <view wx:for="{{stickerLayers}}" wx:key="id" 
@@ -27,15 +27,29 @@
     </canvas>
   </view>
 
-  <!-- 底胚切换工具栏 -->
+  <!-- 款式切换工具栏 -->
   <view class="base-selector">
-    <text class="toolbar-label">蛋糕底胚</text>
+    <text class="toolbar-label">蛋糕款式</text>
     <scroll-view class="base-options" scroll-x>
-      <view wx:for="{{baseTypes}}" wx:key="value"
-            class="base-option {{cakeState.base === item.value ? 'active' : ''}}"
-            data-base="{{item.value}}"
-            bindtap="onBaseChange">
-        <image class="base-thumb" src="/assets/cakes/{{item.value}}_thumb.png" mode="aspectFit"></image>
+      <view wx:for="{{styles}}" wx:key="value"
+            class="base-option {{cakeState.style === item.value ? 'active' : ''}}"
+            data-style="{{item.value}}"
+            bindtap="onStyleChange">
+        <image class="base-thumb" src="/assets/cakes/{{item.value}}_{{flavorLocked ? 'original' : cakeState.flavor}}_thumb.png" mode="aspectFit"></image>
+        <text class="base-label">{{item.label}}</text>
+      </view>
+    </scroll-view>
+  </view>
+
+  <!-- 口味切换工具栏 -->
+  <view class="base-selector">
+    <text class="toolbar-label">口味 {{flavorLocked ? '（巴斯克仅原味）' : ''}}</text>
+    <scroll-view class="base-options" scroll-x>
+      <view wx:for="{{flavors}}" wx:key="value"
+            class="base-option {{(flavorLocked ? 'original' : cakeState.flavor) === item.value ? 'active' : ''}} {{flavorLocked ? 'disabled' : ''}}"
+            data-flavor="{{item.value}}"
+            bindtap="onFlavorChange">
+        <view class="flavor-dot" style="background: {{item.value === 'vanilla' ? '#FFF8E7' : item.value === 'strawberry' ? '#FFB6C1' : item.value === 'matcha' ? '#A8D5A2' : item.value === 'chocolate' ? '#8B5A3C' : '#FFD580'}};"></view>
         <text class="base-label">{{item.label}}</text>
       </view>
     </scroll-view>

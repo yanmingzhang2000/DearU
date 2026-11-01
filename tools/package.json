@@ -1,0 +1,8 @@
+{
+  "name": "dearu-asset-tools",
+  "private": true,
+  "description": "DearU 素材生成工具（SVG → PNG），不随小程序打包",
+  "dependencies": {
+    "sharp": "^0.33.5"
+  }
+}

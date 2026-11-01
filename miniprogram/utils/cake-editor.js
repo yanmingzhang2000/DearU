@@ -10,12 +10,22 @@ const LAYER_TYPE = {
   STROKE: 'stroke'     // 奶油涂鸦笔画（每条路径一个图层）
 };
 
-// 底胚类型（4款）
-const BASE_TYPES = {
+// 底胚款式（4款）
+const STYLES = {
   CREAM: 'cream',
   MILLE: 'mille',
   MOUSSE: 'mousse',
   BASQUE: 'basque'
+};
+
+// 口味（5款 + basque 原味）
+const FLAVORS = {
+  VANILLA: 'vanilla',
+  STRAWBERRY: 'strawberry',
+  MATCHA: 'matcha',
+  CHOCOLATE: 'chocolate',
+  MANGO: 'mango',
+  ORIGINAL: 'original'  // 仅 basque 使用
 };
 
 // 装饰类型
@@ -34,12 +44,14 @@ const BRUSH_TYPES = {
 
 /**
  * 创建空白蛋糕状态
- * @param {string} baseType - 底胚类型，默认奶油
+ * @param {string} style - 底胚款式，默认奶油
+ * @param {string} flavor - 口味，默认香草
  * @returns {Object} 初始 cake_state
  */
-function createEmptyCake(baseType = BASE_TYPES.CREAM) {
+function createEmptyCake(style = STYLES.CREAM, flavor = FLAVORS.VANILLA) {
   return {
-    base: baseType,
+    style: style,
+    flavor: flavor,
     layers: []  // 图层数组，按 z-index 排序（append 自动递增）
   };
 }
@@ -144,12 +156,27 @@ function removeLayer(cakeState, layerId) {
 }
 
 /**
- * 切换底胚
+ * 切换底胚款式
  * @param {Object} cakeState
- * @param {string} baseType
+ * @param {string} style
  */
-function changeBase(cakeState, baseType) {
-  cakeState.base = baseType;
+function changeStyle(cakeState, style) {
+  cakeState.style = style;
+  if (style === STYLES.BASQUE) {
+    cakeState.flavor = FLAVORS.ORIGINAL;
+  } else if (cakeState.flavor === FLAVORS.ORIGINAL) {
+    cakeState.flavor = FLAVORS.VANILLA;
+  }
+}
+
+/**
+ * 切换口味（basque 款式下锁定原味，不允许切换）
+ * @param {Object} cakeState
+ * @param {string} flavor
+ */
+function changeFlavor(cakeState, flavor) {
+  if (cakeState.style === STYLES.BASQUE) return;
+  cakeState.flavor = flavor;
 }
 
 /**
@@ -239,7 +266,8 @@ class EditorHistory {
 
 module.exports = {
   LAYER_TYPE,
-  BASE_TYPES,
+  STYLES,
+  FLAVORS,
   STICKER_TYPES,
   BRUSH_TYPES,
   createEmptyCake,
@@ -248,6 +276,7 @@ module.exports = {
   addStroke,
   updateLayer,
   removeLayer,
-  changeBase,
+  changeStyle,
+  changeFlavor,
   EditorHistory
 };

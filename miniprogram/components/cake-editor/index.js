@@ -18,12 +18,20 @@ Component({
 
   data: {
     cakeState: null,
-    baseTypes: [
-      { value: cakeEditor.BASE_TYPES.CREAM, label: '奶油' },
-      { value: cakeEditor.BASE_TYPES.MILLE, label: '千层' },
-      { value: cakeEditor.BASE_TYPES.MOUSSE, label: '慕斯' },
-      { value: cakeEditor.BASE_TYPES.BASQUE, label: '巴斯克' }
+    styles: [
+      { value: cakeEditor.STYLES.CREAM, label: '奶油' },
+      { value: cakeEditor.STYLES.MILLE, label: '千层' },
+      { value: cakeEditor.STYLES.MOUSSE, label: '慕斯' },
+      { value: cakeEditor.STYLES.BASQUE, label: '巴斯克' }
     ],
+    flavors: [
+      { value: cakeEditor.FLAVORS.VANILLA, label: '香草' },
+      { value: cakeEditor.FLAVORS.STRAWBERRY, label: '草莓' },
+      { value: cakeEditor.FLAVORS.MATCHA, label: '抹茶' },
+      { value: cakeEditor.FLAVORS.CHOCOLATE, label: '巧克力' },
+      { value: cakeEditor.FLAVORS.MANGO, label: '芒果' }
+    ],
+    flavorLocked: false,
     brushTypes: [
       { value: cakeEditor.BRUSH_TYPES.ROUND, label: '圆点', icon: '●' },
       { value: cakeEditor.BRUSH_TYPES.WAVE, label: '波浪', icon: '〰️' },
@@ -43,9 +51,21 @@ Component({
 
   lifetimes: {
     attached() {
-      // 初始化蛋糕状态
+      // 初始化蛋糕状态（兼容旧 base 单键数据）
       const initial = this.properties.initialState;
-      const state = initial && initial.base ? initial : cakeEditor.createEmptyCake();
+      let state;
+      if (initial && (initial.style || initial.base)) {
+        state = initial;
+        if (!state.style && state.base) {
+          state.style = state.base;
+          state.flavor = state.base === cakeEditor.STYLES.BASQUE
+            ? cakeEditor.FLAVORS.ORIGINAL
+            : cakeEditor.FLAVORS.VANILLA;
+          delete state.base;
+        }
+      } else {
+        state = cakeEditor.createEmptyCake();
+      }
       this.cakeState = state;
       this.history = new cakeEditor.EditorHistory();
       this.history.push(state);
@@ -56,6 +76,7 @@ Component({
       
       this.setData({
         cakeState: state,
+        flavorLocked: state.style === cakeEditor.STYLES.BASQUE,
         stickerLayers: this._getStickerLayers(state),
         canUndo: this.history.canUndo(),
         canRedo: this.history.canRedo()
@@ -137,10 +158,21 @@ Component({
     },
 
     // ========== 底胚切换 ==========
-    onBaseChange(e) {
+    onStyleChange(e) {
       if (this.properties.readonly) return;
-      const base = e.currentTarget.dataset.base;
-      cakeEditor.changeBase(this.cakeState, base);
+      const style = e.currentTarget.dataset.style;
+      cakeEditor.changeStyle(this.cakeState, style);
+      this.setData({
+        cakeState: this.cakeState,
+        flavorLocked: style === cakeEditor.STYLES.BASQUE
+      });
+      this._pushHistory();
+    },
+
+    onFlavorChange(e) {
+      if (this.properties.readonly || this.data.flavorLocked) return;
+      const flavor = e.currentTarget.dataset.flavor;
+      cakeEditor.changeFlavor(this.cakeState, flavor);
       this.setData({ cakeState: this.cakeState });
       this._pushHistory();
     },

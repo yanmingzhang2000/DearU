@@ -112,6 +112,19 @@
   color: #73445c;
 }
 
+/* 口味色块 */
+.flavor-dot {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  border: 2rpx solid #f7d3e2;
+}
+
+.base-option.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
 /* 笔刷选择器 */
 .brush-selector {
   margin-top: 24rpx;
