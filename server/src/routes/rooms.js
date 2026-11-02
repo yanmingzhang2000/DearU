@@ -4,6 +4,7 @@ const authMiddleware = require('../middleware/auth');
 const db = require('../db');
 const { formatRoomResponse } = require('../utils/format');
 const { resolveCakeSave } = require('../utils/cake-merge');
+const { softDeleteRoom } = require('../utils/room-lifecycle');
 const roomContract = require('../../../shared/room-contract.json');
 
 const router = express.Router();
@@ -50,6 +51,20 @@ router.post('/', authMiddleware, (req, res) => {
     INSERT INTO analytics_event (event_id, event_name, room_id, user_id, properties)
     VALUES (?, ?, ?, ?, ?)
   `).run(nanoid(), 'room_created', roomId, creatorId, JSON.stringify({ occasion: 'birthday' }));
+
+  // 埋点 invitee_created_room（K 系数分子）：若本次建房者曾在任意房间担任过 invitee（寿星），
+  // 说明这是"被邀请者自己也建了一个新房"的自然增长信号。只看"曾经当过寿星"，不要求是同一个房间，
+  // 也不要求当次庆祝已完成——只要曾绑定为 invitee_id 就算，与 v1-埋点schema.md §2 口径一致
+  // （"打开一次不算"由 invites.js 的 E4 绑定动作本身保证，此处复用绑定结果不重复判断）。
+  const wasInvitee = db.prepare(`
+    SELECT 1 FROM room WHERE invitee_id = ? LIMIT 1
+  `).get(creatorId);
+  if (wasInvitee) {
+    db.prepare(`
+      INSERT INTO analytics_event (event_id, event_name, room_id, user_id, properties)
+      VALUES (?, ?, ?, ?, ?)
+    `).run(nanoid(), 'invitee_created_room', roomId, creatorId, '{}');
+  }
 
   const room = db.prepare('SELECT * FROM room WHERE room_id = ?').get(roomId);
   const response = formatRoomResponse(room, null, 'creator', inviteToken);
@@ -516,6 +531,71 @@ router.post('/:id/celebration/complete', authMiddleware, (req, res) => {
   const response = formatRoomResponse(updatedRoom, celebration, role, room.invite_link_token);
   response.route = getRoute(updatedRoom.status);
   res.json(response);
+});
+
+// POST /rooms/:id/revoke - 房主撤销邀请链接（E10）
+// 前置态"非 completed"（v1-状态机.md E10）；撤销后链接失效，第三人（以及尚未绑定的寿星）此后打开即拒。
+// 幂等：链接已是 revoked 时重复调用直接返回成功，不报错（撤销操作本身没有"失败"的业务含义）。
+router.post('/:id/revoke', authMiddleware, (req, res) => {
+  const roomId = req.params.id;
+  const userId = req.user.user_id;
+
+  const room = db.prepare('SELECT * FROM room WHERE room_id = ? AND deleted_at IS NULL').get(roomId);
+  if (!room) {
+    return res.status(404).json({
+      error: { code: 'ROOM_NOT_FOUND', message: '房间不存在' }
+    });
+  }
+
+  if (room.creator_id !== userId) {
+    return res.status(403).json({
+      error: { code: 'FORBIDDEN', message: '仅房主可撤销邀请链接' }
+    });
+  }
+
+  if (room.status === 'completed') {
+    return res.status(400).json({
+      error: { code: 'INVALID_STATE', message: '已完成的房间无需撤销链接' }
+    });
+  }
+
+  db.prepare(`
+    UPDATE invite_link
+    SET status = 'revoked', revoked_at = datetime('now')
+    WHERE room_id = ? AND status = 'active'
+  `).run(roomId);
+
+  db.prepare(`
+    UPDATE room SET last_activity_at = datetime('now') WHERE room_id = ?
+  `).run(roomId);
+
+  res.json({ success: true, invite: { token: room.invite_link_token, status: 'revoked' } });
+});
+
+// DELETE /rooms/:id - 房主删房（E11，逻辑删除 + 敏感内容脱敏）
+// 前置态"任意"（v1-状态机.md E11：触发方房主，前置态任意，目标态删除）。
+// 幂等：房间已是 deleted_at 非空时，视为"房间不存在"返回 404（与其他路由的查询条件保持一致，
+// 不额外区分"从未存在"和"已被删除"两种 404，避免泄露房间是否曾经存在过）。
+router.delete('/:id', authMiddleware, (req, res) => {
+  const roomId = req.params.id;
+  const userId = req.user.user_id;
+
+  const room = db.prepare('SELECT * FROM room WHERE room_id = ? AND deleted_at IS NULL').get(roomId);
+  if (!room) {
+    return res.status(404).json({
+      error: { code: 'ROOM_NOT_FOUND', message: '房间不存在' }
+    });
+  }
+
+  if (room.creator_id !== userId) {
+    return res.status(403).json({
+      error: { code: 'FORBIDDEN', message: '仅房主可删除房间' }
+    });
+  }
+
+  softDeleteRoom(db, roomId);
+
+  res.json({ success: true });
 });
 
 module.exports = router;
