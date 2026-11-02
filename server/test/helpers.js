@@ -25,6 +25,7 @@ async function startTestServer() {
     '../src/routes/analytics',
     '../src/middleware/auth',
     '../src/utils/format',
+    '../src/utils/wechat',
     '../src/auth'
   ];
   modulesToReset.forEach((mod) => {
@@ -41,6 +42,7 @@ async function startTestServer() {
       const port = server.address().port;
       resolve({
         baseUrl: `http://localhost:${port}/api/v1`,
+        db, // 暴露给测试直接查表断言（如 analytics_event），避免为此新增专用调试接口
         close: () => new Promise((res) => {
           server.close(() => {
             try {
