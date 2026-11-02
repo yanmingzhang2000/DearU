@@ -27,6 +27,10 @@ CREATE TABLE IF NOT EXISTS room (
   last_activity_at TEXT NOT NULL DEFAULT (datetime('now')),
   completed_at TEXT,
   deleted_at TEXT,
+  making_phase TEXT NOT NULL DEFAULT 'awaiting_both' CHECK(making_phase IN ('awaiting_both', 'wheel_ready', 'wheel_playing', 'cake_editing', 'decorating')),
+  wheel_started_at TEXT,
+  cake_locked_at TEXT,
+  cake_version INTEGER NOT NULL DEFAULT 1,
   FOREIGN KEY (creator_id) REFERENCES user(user_id),
   FOREIGN KEY (invitee_id) REFERENCES user(user_id)
 );

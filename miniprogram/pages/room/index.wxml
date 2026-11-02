@@ -22,7 +22,25 @@
       <text class="muted">这个房间只属于你们两个人。链接只是进门的那把钥匙，内容只保存在你们之间。</text>
     </view>
 
-    <view wx:if="{{room.status === 'draft' || room.status === 'collaborating'}}" class="card">
+    <!-- v1.1：collaborating 阶段内，making_phase 决定展示哪个子阶段的交互（规格第 1 节五态分支） -->
+    <view wx:if="{{room.status === 'collaborating'}}" class="card making-phase-card">
+      <text class="card-title">{{makingPhaseLabel}}</text>
+
+      <block wx:if="{{room.makingPhase === 'awaiting_both'}}">
+        <text class="body-text">等 TA 进房后才能开启转盘。</text>
+      </block>
+
+      <block wx:elif="{{room.makingPhase === 'wheel_ready'}}">
+        <text class="body-text">{{role === 'creator' ? 'TA 已经进房啦，点击开启转盘。' : '等待房主开启转盘。'}}</text>
+        <button wx:if="{{canOpenWheel}}" class="primary-button main-button" bindtap="onWheelOpen">开启转盘</button>
+      </block>
+
+      <block wx:elif="{{room.makingPhase === 'wheel_playing'}}">
+        <text class="body-text">转盘正在播放，请留意屏幕动画。</text>
+      </block>
+    </view>
+
+    <view wx:if="{{room.status === 'draft' || (room.status === 'collaborating' && (room.makingPhase === 'cake_editing' || room.makingPhase === 'decorating'))}}" class="card">
       <text class="card-title">一起做这块蛋糕</text>
       <text class="body-text">{{role === 'creator' ? '把邀请发给 TA，让 TA 来定今天的蛋糕；之后你们一起画。' : '今天你说了算——挑个喜欢的底胚和口味，再一起画点什么。'}}</text>
 
@@ -35,15 +53,25 @@
         id="cakeEditor"
         initial-state="{{room.cakeState}}"
         readonly="{{!canEditCake}}"
-        bind:change="onCakeChange">
+        can-edit-base-flavor="{{canEditBaseFlavor}}"
+        lock-base-flavor="{{lockBaseFlavor}}"
+        bind:change="onCakeChange"
+        bind:draggingLayerChange="onCakeDraggingLayerChange"
+        bind:deleteLayer="onDeleteLayer">
       </cake-editor>
 
       <button wx:if="{{canEditCake}}" class="secondary-button main-button" bindtap="openStickerDrawer">添加装饰</button>
       <button wx:if="{{canEditCake}}" class="secondary-button main-button" bindtap="writeBlessing">写句祝福</button>
+      <button wx:if="{{role === 'invitee' && room.makingPhase === 'cake_editing'}}" class="primary-button main-button" bindtap="onCakeLock">锁定底胚和口味</button>
 
       <button wx:if="{{canReady}}" class="primary-button main-button" bindtap="markReady">我选好了</button>
       <button wx:if="{{canSeal}}" class="primary-button main-button" bindtap="sealRoom">封装礼盒</button>
     </view>
+
+    <wheel-ritual
+      visible="{{wheelRitualVisible}}"
+      bind:complete="onWheelRitualComplete">
+    </wheel-ritual>
 
     <sticker-drawer
       visible="{{stickerDrawerVisible}}"
@@ -73,8 +101,46 @@
       <text class="card-title">邀请 TA 来一起做</text>
       <text class="muted">建房即生成，封装后不再生成第二个。</text>
       <text class="invite-path">{{invitePath}}</text>
+
+      <view class="share-title-preview" bindtap="openShareTitleEditor">
+        <text class="share-title-label">分享文案</text>
+        <text class="share-title-text">{{shareTitle}}</text>
+        <text class="share-title-edit-hint">点击更换</text>
+      </view>
+
       <button class="secondary-button main-button" bindtap="sendInvite">复制邀请链接</button>
       <button class="secondary-button main-button" open-type="share">发给 TA</button>
     </view>
   </block>
+
+  <!-- 分享文案选择弹层：预设 3 条 + 自定义输入（规格 §3.5/§3.6，仅房主可打开） -->
+  <view wx:if="{{shareTitleEditorVisible}}" class="share-title-mask" bindtap="closeShareTitleEditor">
+    <view class="share-title-sheet" catchtap="noop">
+      <text class="card-title">选一句发给 TA 的文案</text>
+      <text class="muted">这是分享卡片上唯一会显示的文字，没有 emoji 更像真心话。</text>
+
+      <view
+        wx:for="{{sharePresets}}"
+        wx:key="*this"
+        class="share-title-option {{shareTitle === item ? 'share-title-option-active' : ''}}"
+        data-title="{{item}}"
+        bindtap="selectShareTitlePreset">
+        <text>{{item}}</text>
+      </view>
+
+      <view class="share-title-custom">
+        <text class="share-title-label">或自己写一句</text>
+        <textarea
+          class="share-title-textarea"
+          value="{{shareTitleDraft}}"
+          placeholder="懒得写也没关系，用上面的预设就很好"
+          maxlength="50"
+          bindinput="onShareTitleDraftInput">
+        </textarea>
+        <button class="primary-button main-button" bindtap="confirmShareTitleDraft">用这句</button>
+      </view>
+
+      <button class="secondary-button main-button" bindtap="closeShareTitleEditor">取消</button>
+    </view>
+  </view>
 </view>

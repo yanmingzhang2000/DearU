@@ -125,6 +125,11 @@
   pointer-events: none;
 }
 
+/* v1.1：底胚/口味区整体锁定态样式（decorating 阶段起，见规格第 4.1 节） */
+.base-selector-locked .toolbar-label {
+  color: #b79aa8;
+}
+
 /* 笔刷选择器 */
 .brush-selector {
   margin-top: 24rpx;

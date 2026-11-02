@@ -38,6 +38,10 @@ function formatRoomResponse(room, celebration = null, role = '', inviteToken = '
       createdAt: room.created_at,
       completedAt: room.completed_at,
       celebrationConfig: parseJson(room.celebration_config, {}),
+      makingPhase: room.making_phase,
+      wheelStartedAt: room.wheel_started_at,
+      cakeLockedAt: room.cake_locked_at,
+      cakeVersion: room.cake_version,
       celebration: null
     }
   };

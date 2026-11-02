@@ -9,8 +9,20 @@ Component({
       type: Object,
       value: null
     },
-    // 是否只读模式（庆祝阶段展示用）
+    // 是否只读模式（庆祝阶段展示用，贴纸/涂鸦/底胚口味全部不可编辑）
     readonly: {
+      type: Boolean,
+      value: false
+    },
+    // v1.1：底胚/口味区是否可编辑（规格第 4.1 节字段级权限）。
+    // 涵盖两种禁用场景：(a) cake_editing 阶段房主侧（仅寿星可改）(b) decorating 阶段双方（已锁定）。
+    // 与 readonly 不同：canEditBaseFlavor 为假时贴纸/涂鸦/文字仍可编辑，只锁底胚口味区。
+    canEditBaseFlavor: {
+      type: Boolean,
+      value: true
+    },
+    // decorating 阶段专用文案标记（"已锁定"），仅影响禁用态提示文案，不影响禁用判断本身
+    lockBaseFlavor: {
       type: Boolean,
       value: false
     }
@@ -159,7 +171,7 @@ Component({
 
     // ========== 底胚切换 ==========
     onStyleChange(e) {
-      if (this.properties.readonly) return;
+      if (this.properties.readonly || !this.properties.canEditBaseFlavor) return;
       const style = e.currentTarget.dataset.style;
       cakeEditor.changeStyle(this.cakeState, style);
       this.setData({
@@ -170,7 +182,7 @@ Component({
     },
 
     onFlavorChange(e) {
-      if (this.properties.readonly || this.data.flavorLocked) return;
+      if (this.properties.readonly || !this.properties.canEditBaseFlavor || this.data.flavorLocked) return;
       const flavor = e.currentTarget.dataset.flavor;
       cakeEditor.changeFlavor(this.cakeState, flavor);
       this.setData({ cakeState: this.cakeState });
@@ -251,6 +263,8 @@ Component({
         _touchStartPos: { x: touch.pageX, y: touch.pageY },
         _prevTouches: e.touches
       });
+      // 通知父组件"手指正按着哪个图层"，供轮询到达时的显示侧合并使用（规格第 5 节）
+      this.triggerEvent('draggingLayerChange', { layerId: layerId });
     },
 
     onStickerTouchMove(e) {
@@ -295,6 +309,8 @@ Component({
         _prevTouches: null
       });
       this._pushHistory();
+      // 手指松开，拖拽保护解除
+      this.triggerEvent('draggingLayerChange', { layerId: null });
     },
 
     // ========== 操作按钮 ==========
@@ -331,14 +347,11 @@ Component({
     },
 
     onDeleteLayer() {
+      // v1.1 规格第 4.3/10 节：删除走独立 F4 接口，PUT 永不处理删除语义。
+      // 这里不在本地直接摘除图层，而是把事件交给父组件去调用 DELETE 接口，
+      // 接口成功后父组件会用权威响应刷新本组件状态（见 room/index.js onDeleteLayer）。
       if (this.properties.readonly || !this.data.selectedLayerId) return;
-      cakeEditor.removeLayer(this.cakeState, this.data.selectedLayerId);
-      this.setData({
-        selectedLayerId: '',
-        stickerLayers: this._getStickerLayers(this.cakeState)
-      });
-      this._redrawStrokes();
-      this._pushHistory();
+      this.triggerEvent('deleteLayer', { layerId: this.data.selectedLayerId });
     },
 
     onClear() {
@@ -369,6 +382,22 @@ Component({
      */
     getCakeState() {
       return JSON.parse(JSON.stringify(this.cakeState));
+    },
+
+    /**
+     * v1.1：接受父组件传入的"轮询合并后的权威状态"（第 5 节 mergeForDisplay 的结果），
+     * 同步进组件内部状态并重绘。不走 _pushHistory（这不是用户本地编辑动作，不应该进撤销栈，
+     * 也不应该再触发一次 change 事件把它保存回服务端，否则会造成无意义的 PUT 循环）。
+     * @param {Object} cakeState - 合并后的 { style, flavor, layers }
+     */
+    applyExternalCakeState(cakeState) {
+      this.cakeState = cakeState;
+      this.setData({
+        cakeState: cakeState,
+        flavorLocked: cakeState.style === cakeEditor.STYLES.BASQUE,
+        stickerLayers: this._getStickerLayers(cakeState)
+      });
+      this._redrawStrokes();
     },
 
     /**

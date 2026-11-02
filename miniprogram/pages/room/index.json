@@ -3,6 +3,7 @@
   "usingComponents": {
     "cake-editor": "/components/cake-editor/index",
     "sticker-drawer": "/components/sticker-drawer/index",
-    "celebration-ritual": "/components/celebration-ritual/index"
+    "celebration-ritual": "/components/celebration-ritual/index",
+    "wheel-ritual": "/components/wheel-ritual/index"
   }
 }
