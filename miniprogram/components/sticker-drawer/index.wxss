@@ -58,12 +58,28 @@
   padding: 20rpx;
 }
 
-.sticker-item {
+/* P1-5：分类分组 */
+.sticker-group-label {
+  font-size: 24rpx;
+  color: #9c7d8c;
+  font-weight: 600;
+  padding: 16rpx 8rpx 8rpx;
+}
+
+.sticker-group {
   display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+}
+
+.sticker-item {
+  width: calc(25% - 12rpx);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  padding: 24rpx;
+  padding: 20rpx 8rpx;
   border-radius: 16rpx;
-  margin-bottom: 16rpx;
   background: #fff8fb;
 }
 
@@ -74,10 +90,10 @@
 .sticker-preview {
   width: 80rpx;
   height: 80rpx;
-  margin-right: 20rpx;
+  margin-bottom: 8rpx;
 }
 
 .sticker-name {
-  font-size: 28rpx;
+  font-size: 22rpx;
   color: #73445c;
 }

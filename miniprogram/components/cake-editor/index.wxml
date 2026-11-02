@@ -76,6 +76,29 @@
         <text class="brush-label">{{item.label}}</text>
       </view>
     </view>
+
+    <!-- P1-3：颜色调色板（涂鸦与文字祝福共用） -->
+    <view class="stroke-color-row">
+      <view wx:for="{{strokePalette}}" wx:key="value"
+            class="color-dot {{currentStrokeColor === item.value ? 'active' : ''}}"
+            style="background: {{item.value}};"
+            data-color="{{item.value}}"
+            bindtap="onColorChange">
+        <text wx:if="{{currentStrokeColor === item.value}}" class="color-check">✓</text>
+      </view>
+    </view>
+
+    <!-- P1-4：粗细两档 -->
+    <view class="stroke-width-row">
+      <text class="width-label">粗细</text>
+      <view wx:for="{{strokeWidths}}" wx:key="value"
+            class="width-option {{currentStrokeWidth === item.value ? 'active' : ''}}"
+            data-width="{{item.value}}"
+            bindtap="onWidthChange">
+        <view class="width-preview" style="height: {{item.value / 2}}rpx;"></view>
+        <text>{{item.label}}</text>
+      </view>
+    </view>
   </view>
 
   <!-- 操作按钮栏 -->

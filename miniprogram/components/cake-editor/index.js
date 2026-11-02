@@ -50,6 +50,22 @@ Component({
       { value: cakeEditor.BRUSH_TYPES.ZIGZAG, label: '锯齿', icon: '⚡' }
     ],
     currentBrush: cakeEditor.BRUSH_TYPES.ROUND,
+    // P1-3：涂鸦/文字共用调色板（口味联动的6色 + 口味同源色）
+    strokePalette: [
+      { value: '#FF7EA0', label: '草莓粉' },
+      { value: '#E4576E', label: '樱桃红' },
+      { value: '#F0DBA4', label: '香草黄' },
+      { value: '#9CC98B', label: '抹茶绿' },
+      { value: '#8B5A3C', label: '巧克力' },
+      { value: '#FFB347', label: '芒果橙' }
+    ],
+    currentStrokeColor: '#FF7EA0',
+    // P1-4：两档粗细
+    strokeWidths: [
+      { value: 12, label: '细' },
+      { value: 24, label: '粗' }
+    ],
+    currentStrokeWidth: 24,
     stickerLayers: [],  // 贴纸和文字图层
     selectedLayerId: '',
     canUndo: false,
@@ -57,8 +73,7 @@ Component({
     
     // 手势状态（内部）
     _touchStartPos: null,
-    _prevTouches: null,
-    _currentStrokePath: []  // 当前正在绘制的路径
+    _prevTouches: null
   },
 
   lifetimes: {
@@ -151,6 +166,14 @@ Component({
     _redrawStrokes() {
       if (!this.canvasCtx || !this.renderer) return;
       this.renderer.clear(this.canvasWidth, this.canvasHeight);
+      this._renderSavedStrokes();
+    },
+
+    /**
+     * 仅绘制已保存的笔画（不清屏），供实时预览复用
+     */
+    _renderSavedStrokes() {
+      if (!this.canvasCtx || !this.renderer || !this.cakeState) return;
       const strokes = this.cakeState.layers.filter(l => l.type === cakeEditor.LAYER_TYPE.STROKE);
       strokes.forEach(stroke => {
         this.renderer.drawStroke(stroke);
@@ -203,6 +226,17 @@ Component({
       this.setData({ currentBrush: brush });
     },
 
+    // P1-3/P1-4：颜色与粗细选择（涂鸦与文字祝福共用）
+    onColorChange(e) {
+      if (this.properties.readonly) return;
+      this.setData({ currentStrokeColor: e.currentTarget.dataset.color });
+    },
+
+    onWidthChange(e) {
+      if (this.properties.readonly) return;
+      this.setData({ currentStrokeWidth: Number(e.currentTarget.dataset.width) });
+    },
+
     // ========== Canvas 涂鸦 ==========
     // P0-5：点空白 = 取消选中；只有拖动超过阈值才起笔，轻点不会画出小点
     onCanvasTouchStart(e) {
@@ -210,7 +244,7 @@ Component({
       const touch = e.touches[0];
       this._strokeStart = { x: touch.x, y: touch.y };
       this._strokeMoved = false;
-      this.setData({ _currentStrokePath: [] });
+      this._currentLivePath = null; // P1-2：实例变量承载实时路径，避免高频 setData
     },
 
     onCanvasTouchMove: strokeRenderer.throttle(function(e) {
@@ -223,60 +257,64 @@ Component({
         const dy = touch.y - this._strokeStart.y;
         if (dx * dx + dy * dy < 8 * 8) return;
         this._strokeMoved = true;
-        this.setData({ _currentStrokePath: [this._strokeStart, { x: touch.x, y: touch.y }] });
+        this._currentLivePath = [this._strokeStart, { x: touch.x, y: touch.y }];
+        this._redrawWithLiveStroke();
         return;
       }
 
-      const path = this.data._currentStrokePath;
-      path.push({ x: touch.x, y: touch.y });
-      
-      // 实时绘制（增量）
+      this._currentLivePath.push({ x: touch.x, y: touch.y });
+      this._redrawWithLiveStroke();
+    }, 32),
+
+    // P1-2：整笔重绘预览——清屏 → 已保存笔画 → 当前笔画（用当前笔刷/颜色/粗细）
+    // 实时预览与 touchend 落笔走同一条 drawStroke 路径，所见即所得
+    _redrawWithLiveStroke() {
+      if (!this.canvasCtx || !this.renderer) return;
       const ctx = this.canvasCtx;
-      ctx.strokeStyle = '#FFE5EC';
-      ctx.lineWidth = 20;
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
-      
-      if (path.length >= 2) {
-        ctx.beginPath();
-        ctx.moveTo(path[path.length - 2].x, path[path.length - 2].y);
-        ctx.lineTo(touch.x, touch.y);
-        ctx.stroke();
+      ctx.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
+      this._renderSavedStrokes();
+      if (this._currentLivePath && this._currentLivePath.length >= 2) {
+        this.renderer.drawStroke({
+          brushType: this.data.currentBrush,
+          points: this._currentLivePath,
+          color: this.data.currentStrokeColor,
+          width: this.data.currentStrokeWidth
+        });
       }
-      
-      this.setData({ _currentStrokePath: path });
-    }, 16),
+    },
 
     onCanvasTouchEnd() {
       const moved = this._strokeMoved;
+      const livePath = this._currentLivePath;
       this._strokeStart = null;
       this._strokeMoved = false;
+      this._currentLivePath = null;
 
       if (!moved) {
         // 点空白：取消选中，不产生涂鸦
-        this.setData({ _currentStrokePath: [], selectedLayerId: '' });
+        this.setData({ selectedLayerId: '' });
+        this._redrawStrokes();
         return;
       }
 
-      if (!this.data._currentStrokePath || this.data._currentStrokePath.length < 2) {
-        this.setData({ _currentStrokePath: [] });
+      if (!livePath || livePath.length < 2) {
+        this._redrawStrokes();
         return;
       }
 
-      // 保存笔画到图层
+      // 保存笔画到图层（P1-3/P1-4：颜色与粗细取自当前选择，而非硬编码）
       cakeEditor.addStroke(
-        this.cakeState, 
-        this.data._currentStrokePath, 
+        this.cakeState,
+        livePath,
         this.data.currentBrush,
-        '#FFE5EC',
-        20
+        this.data.currentStrokeColor,
+        this.data.currentStrokeWidth
       );
-      
-      // 重绘所有笔画（应用笔刷效果）
+
+      // 重绘所有笔画（应用笔刷效果，与预览一致）
       this._redrawStrokes();
-      
-      this.setData({ 
-        _currentStrokePath: [],
+
+      this.setData({
         stickerLayers: this._getStickerLayers(this.cakeState)
       });
       this._pushHistory();
@@ -493,7 +531,8 @@ Component({
     addText(text) {
       if (this.properties.readonly || !text) return;
       const spawn = cakeEditor.getSpawnPoint(this.cakeState.style, 0, 'text');
-      const layer = cakeEditor.addText(this.cakeState, text, spawn.x, spawn.y);
+      // P1-3：文字祝福用当前调色板选中的颜色
+      const layer = cakeEditor.addText(this.cakeState, text, spawn.x, spawn.y, this.data.currentStrokeColor);
       cakeEditor.clampLayerPosition(layer, this.containerBounds);
       this.setData({
         stickerLayers: this._getStickerLayers(this.cakeState),

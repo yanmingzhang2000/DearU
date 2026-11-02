@@ -9,11 +9,24 @@ Component({
   },
 
   data: {
-    stickers: [
-      { type: cakeEditor.STICKER_TYPES.STRAWBERRY, label: '草莓' },
-      { type: cakeEditor.STICKER_TYPES.BLUEBERRY, label: '蓝莓' },
-      { type: cakeEditor.STICKER_TYPES.CANDLE, label: '蜡烛' }
-    ]
+    // P1-5：按 STICKER_CATEGORIES 分组，素材表来自 STICKER_META
+    groups: []
+  },
+
+  lifetimes: {
+    attached() {
+      const meta = cakeEditor.STICKER_META;
+      const groups = cakeEditor.STICKER_CATEGORIES
+        .map(cat => ({
+          key: cat.key,
+          label: cat.label,
+          items: Object.keys(meta)
+            .filter(type => meta[type].category === cat.key)
+            .map(type => ({ type, label: meta[type].label }))
+        }))
+        .filter(g => g.items.length > 0);
+      this.setData({ groups });
+    }
   },
 
   methods: {

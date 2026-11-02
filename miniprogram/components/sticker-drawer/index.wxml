@@ -6,13 +6,18 @@
       <text class="close-btn" catchtap="onClose">✕</text>
     </view>
     <scroll-view class="sticker-list" scroll-y>
-      <view wx:for="{{stickers}}" wx:key="type"
-            class="sticker-item"
-            data-sticker="{{item.type}}"
-            bindtap="onStickerTap">
-        <image class="sticker-preview" src="/assets/stickers/{{item.type}}.png" mode="aspectFit"></image>
-        <text class="sticker-name">{{item.label}}</text>
-      </view>
+      <block wx:for="{{groups}}" wx:key="key" wx:for-item="group">
+        <view class="sticker-group-label">{{group.label}}</view>
+        <view class="sticker-group">
+          <view wx:for="{{group.items}}" wx:key="type"
+                class="sticker-item"
+                data-sticker="{{item.type}}"
+                bindtap="onStickerTap">
+            <image class="sticker-preview" src="/assets/stickers/{{item.type}}.png" mode="aspectFit"></image>
+            <text class="sticker-name">{{item.label}}</text>
+          </view>
+        </view>
+      </block>
     </scroll-view>
   </view>
 </view>

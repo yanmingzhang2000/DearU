@@ -35,6 +35,35 @@ const STICKER_TYPES = {
   CANDLE: 'candle'
 };
 
+// ========== P1 素材元数据：标签 / 抽屉分类 / 基准缩放 ==========
+// scale：落点时的初始缩放，按素材本身在 80px 画布里的视觉占比标定，
+// 让草莓和彩糖针放上去大小就协调，不必人人手动捏合。
+const STICKER_META = {
+  strawberry: { label: '草莓', category: 'fruit', scale: 1.0 },
+  blueberry: { label: '蓝莓', category: 'fruit', scale: 0.7 },
+  cherry: { label: '樱桃', category: 'fruit', scale: 0.95 },
+  mango: { label: '芒果粒', category: 'fruit', scale: 0.7 },
+  mint: { label: '薄荷叶', category: 'fruit', scale: 0.85 },
+  cookie: { label: '曲奇', category: 'dessert', scale: 1.0 },
+  macaron: { label: '马卡龙', category: 'dessert', scale: 1.0 },
+  chocplate: { label: '巧克力牌', category: 'dessert', scale: 1.1 },
+  marshmallow: { label: '棉花糖', category: 'dessert', scale: 0.85 },
+  creamdollop: { label: '奶油裱花', category: 'topping', scale: 1.1 },
+  sprinkles: { label: '彩糖针', category: 'topping', scale: 0.9 },
+  heartcandy: { label: '爱心糖', category: 'topping', scale: 0.7 },
+  birthdayplaque: { label: '生日牌', category: 'topping', scale: 1.1 },
+  candle: { label: '蜡烛', category: 'candle', scale: 1.1 },
+  numbercandle1: { label: '数字蜡烛', category: 'candle', scale: 1.2 }
+};
+
+// 抽屉分组顺序（P1-5）
+const STICKER_CATEGORIES = [
+  { key: 'fruit', label: '水果' },
+  { key: 'dessert', label: '甜点' },
+  { key: 'topping', label: '点缀' },
+  { key: 'candle', label: '蜡烛' }
+];
+
 // 笔刷类型（奶油挤花）
 const BRUSH_TYPES = {
   ROUND: 'round',      // 圆点
@@ -123,13 +152,14 @@ function createEmptyCake(style = STYLES.CREAM, flavor = FLAVORS.VANILLA) {
  * @returns {Object} 新图层对象
  */
 function addSticker(cakeState, stickerType, x, y) {
+  const meta = STICKER_META[stickerType];
   const layer = {
     id: generateLayerId(),
     type: LAYER_TYPE.STICKER,
     stickerType: stickerType,
     x: x,
     y: y,
-    scale: 1.0,
+    scale: meta ? meta.scale : 1.0, // P1-6：按素材基准尺寸落点
     rotate: 0,  // 角度
     zIndex: cakeState.layers.length
   };
@@ -167,11 +197,11 @@ function addText(cakeState, text, x, y, color = '#FF6B9D') {
  * @param {Object} cakeState
  * @param {Array} points - 路径点数组 [{x, y, timestamp?}, ...]
  * @param {string} brushType - 笔刷类型（round/wave/zigzag）
- * @param {string} color - 颜色，默认 #FFE5EC
+ * @param {string} color - 颜色，默认 #FF7EA0
  * @param {number} width - 笔触宽度（px），默认 20
  * @returns {Object} 新图层对象
  */
-function addStroke(cakeState, points, brushType = BRUSH_TYPES.ROUND, color = '#FFE5EC', width = 20) {
+function addStroke(cakeState, points, brushType = BRUSH_TYPES.ROUND, color = '#FF7EA0', width = 24) {
   const layer = {
     id: generateLayerId(),
     type: LAYER_TYPE.STROKE,
@@ -327,6 +357,8 @@ module.exports = {
   STYLES,
   FLAVORS,
   STICKER_TYPES,
+  STICKER_META,
+  STICKER_CATEGORIES,
   BRUSH_TYPES,
   createEmptyCake,
   addSticker,

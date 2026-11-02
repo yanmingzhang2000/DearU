@@ -192,6 +192,77 @@
   color: #73445c;
 }
 
+/* P1-3：颜色调色板 */
+.stroke-color-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 20rpx;
+  padding: 0 8rpx;
+}
+
+.color-dot {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  border: 4rpx solid transparent;
+  box-shadow: 0 2rpx 6rpx rgba(0, 0, 0, 0.12);
+}
+
+.color-dot.active {
+  border-color: #fff;
+  outline: 4rpx solid #c24d87;
+}
+
+.color-check {
+  font-size: 28rpx;
+  color: #fff;
+  font-weight: bold;
+  text-shadow: 0 0 4rpx rgba(0, 0, 0, 0.45);
+}
+
+/* P1-4：粗细两档 */
+.stroke-width-row {
+  display: flex;
+  align-items: center;
+  margin-top: 20rpx;
+  gap: 16rpx;
+}
+
+.width-label {
+  font-size: 24rpx;
+  color: #73445c;
+}
+
+.width-option {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+  padding: 10rpx 24rpx;
+  border-radius: 28rpx;
+  border: 2rpx solid #f7d3e2;
+  background: #fff;
+  font-size: 24rpx;
+  color: #73445c;
+}
+
+.width-option.active {
+  border-color: #c24d87;
+  background: #fff0f6;
+  color: #a43d70;
+  font-weight: bold;
+}
+
+.width-preview {
+  width: 40rpx;
+  border-radius: 8rpx;
+  background: currentColor;
+}
+
 /* 操作按钮栏 */
 .action-bar {
   display: flex;

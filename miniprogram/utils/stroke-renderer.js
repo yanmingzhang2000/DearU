@@ -4,6 +4,79 @@
 
 const { BRUSH_TYPES } = require('./cake-editor');
 
+// ========== P1 曲线平滑（导出为纯函数，供单测） ==========
+
+/**
+ * 等距重采样：按弧长每 step px 取一点。
+ * 解决手指抖动造成的点距不均——波浪/锯齿按"点序号"叠加花纹，
+ * 点距不均匀时花纹会被拉扯扭曲；等距化后花纹稳定。
+ * @param {Array<{x:number,y:number}>} points - 原始路径
+ * @param {number} step - 采样间距（px）
+ * @returns {Array} 等距路径（保留首尾点）
+ */
+function resampleUniform(points, step = 4) {
+  if (!points || points.length < 2) return (points || []).slice();
+  const out = [points[0]];
+  let acc = 0;
+  let prev = points[0];
+  for (let i = 1; i < points.length; i++) {
+    const cur = points[i];
+    const dx = cur.x - prev.x;
+    const dy = cur.y - prev.y;
+    const segLen = Math.sqrt(dx * dx + dy * dy);
+    if (segLen === 0) continue;
+    let traveled = 0;
+    while (acc + (segLen - traveled) >= step) {
+      traveled += step - acc;
+      const t = traveled / segLen;
+      out.push({ x: prev.x + dx * t, y: prev.y + dy * t });
+      acc = 0;
+    }
+    acc += segLen - traveled;
+    prev = cur;
+  }
+  const last = points[points.length - 1];
+  const tail = out[out.length - 1];
+  if (Math.abs(last.x - tail.x) > 0.01 || Math.abs(last.y - tail.y) > 0.01) {
+    out.push({ x: last.x, y: last.y });
+  }
+  return out;
+}
+
+/**
+ * 滑动平均去抖（首尾点固定，避免笔画端点内缩）
+ * @param {Array} points
+ * @param {number} window - 半窗大小
+ * @returns {Array}
+ */
+function averageSmooth(points, window = 2) {
+  if (!points || points.length < 3 || window < 1) return points;
+  const n = points.length;
+  return points.map((p, i) => {
+    if (i === 0 || i === n - 1) return { x: p.x, y: p.y };
+    let sx = 0, sy = 0, count = 0;
+    for (let k = Math.max(0, i - window); k <= Math.min(n - 1, i + window); k++) {
+      sx += points[k].x;
+      sy += points[k].y;
+      count++;
+    }
+    return { x: sx / count, y: sy / count };
+  });
+}
+
+/**
+ * 路径平滑：等距重采样 + 滑动平均。
+ * 原始点保留在图层里作为数据源，渲染时统一走这里，实时预览与落笔结果一致。
+ * @param {Array} points - 原始路径
+ * @param {Object} [opts] - {step, window}
+ * @returns {Array} 平滑后的路径
+ */
+function smoothPath(points, opts = {}) {
+  const step = opts.step == null ? 4 : opts.step;
+  const window = opts.window == null ? 2 : opts.window;
+  return averageSmooth(resampleUniform(points, step), window);
+}
+
 /**
  * 奶油涂鸦渲染器
  * 用于在 Canvas 2D 上绘制笔画路径
@@ -17,11 +90,14 @@ class StrokeRenderer {
   }
 
   /**
-   * 绘制一条笔画
+   * 绘制一条笔画（P1-1：内部统一先平滑，实时预览与落笔结果一致）
    * @param {Object} stroke - 笔画图层对象 { brushType, points, color, width }
    */
   drawStroke(stroke) {
     if (!stroke.points || stroke.points.length === 0) return;
+
+    const points = smoothPath(stroke.points);
+    if (points.length === 0) return;
 
     const ctx = this.ctx;
     ctx.save();
@@ -33,16 +109,16 @@ class StrokeRenderer {
 
     switch (stroke.brushType) {
       case BRUSH_TYPES.ROUND:
-        this._drawRound(stroke.points, stroke.width);
+        this._drawRound(points, stroke.width);
         break;
       case BRUSH_TYPES.WAVE:
-        this._drawWave(stroke.points, stroke.width);
+        this._drawWave(points, stroke.width);
         break;
       case BRUSH_TYPES.ZIGZAG:
-        this._drawZigzag(stroke.points, stroke.width);
+        this._drawZigzag(points, stroke.width);
         break;
       default:
-        this._drawRound(stroke.points, stroke.width);
+        this._drawRound(points, stroke.width);
     }
 
     ctx.restore();
@@ -251,5 +327,8 @@ function throttle(fn, interval = 16) {
 
 module.exports = {
   StrokeRenderer,
-  throttle
+  throttle,
+  smoothPath,
+  resampleUniform,
+  averageSmooth
 };
