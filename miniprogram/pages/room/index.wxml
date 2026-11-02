@@ -99,8 +99,46 @@
       <text class="card-title">唯一邀请链接</text>
       <text class="muted">建房即生成，封装后不再生成第二个“分享给 TA”。</text>
       <text class="invite-path">{{invitePath}}</text>
+
+      <view class="share-title-preview" bindtap="openShareTitleEditor">
+        <text class="share-title-label">分享文案</text>
+        <text class="share-title-text">{{shareTitle}}</text>
+        <text class="share-title-edit-hint">点击更换</text>
+      </view>
+
       <button class="secondary-button main-button" bindtap="sendInvite">复制邀请路径</button>
       <button class="secondary-button main-button" open-type="share">发给 TA</button>
     </view>
   </block>
+
+  <!-- 分享文案选择弹层：预设 3 条 + 自定义输入（规格 §3.5/§3.6，仅房主可打开） -->
+  <view wx:if="{{shareTitleEditorVisible}}" class="share-title-mask" bindtap="closeShareTitleEditor">
+    <view class="share-title-sheet" catchtap="noop">
+      <text class="card-title">选一句发给 TA 的文案</text>
+      <text class="muted">这是分享卡片上唯一会显示的文字，没有 emoji 更像真心话。</text>
+
+      <view
+        wx:for="{{sharePresets}}"
+        wx:key="*this"
+        class="share-title-option {{shareTitle === item ? 'share-title-option-active' : ''}}"
+        data-title="{{item}}"
+        bindtap="selectShareTitlePreset">
+        <text>{{item}}</text>
+      </view>
+
+      <view class="share-title-custom">
+        <text class="share-title-label">或自己写一句</text>
+        <textarea
+          class="share-title-textarea"
+          value="{{shareTitleDraft}}"
+          placeholder="懒得写也没关系，用上面的预设就很好"
+          maxlength="50"
+          bindinput="onShareTitleDraftInput">
+        </textarea>
+        <button class="primary-button main-button" bindtap="confirmShareTitleDraft">用这句</button>
+      </view>
+
+      <button class="secondary-button main-button" bindtap="closeShareTitleEditor">取消</button>
+    </view>
+  </view>
 </view>

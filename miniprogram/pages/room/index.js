@@ -4,6 +4,11 @@ const analytics = require('../../services/analytics');
 const roomRoute = require('../../utils/room-route');
 const { shouldPoll, POLL_INTERVAL_MS } = require('../../utils/polling-policy');
 const { mergeForDisplay } = require('../../utils/cake-display-merge');
+const { SHARE_TITLE_PRESETS, resolveShareImage } = require('../../utils/share-presets');
+
+// 本地存储 key 前缀：按 roomId 区分，换房间不会读到别的房间的文案选择（规格 §3.6 千人千面，
+// 本地存储不跨设备，详见 README「分享卡片文案」一节的产品取舍说明）
+const SHARE_TITLE_STORAGE_PREFIX = 'dearu_share_title_';
 
 Page({
   data: {
@@ -34,13 +39,19 @@ Page({
     ritualVisible: false,
     // v1.1：转盘仪式子状态机相关渲染开关（见 v1.1-转盘仪式与协作合并规格.md 第 1 节）
     canOpenWheel: false,
-    wheelRitualVisible: false
+    wheelRitualVisible: false,
+    // 分享卡片文案（规格 §3.5/§3.6）：预设 3 条 + 自定义，仅房主可见可改
+    sharePresets: SHARE_TITLE_PRESETS,
+    shareTitle: SHARE_TITLE_PRESETS[0],
+    shareTitleEditorVisible: false,
+    shareTitleDraft: ''
   },
 
   onLoad(options) {
     this.roomId = options.roomId || '';
     this.inviteToken = options.token || '';
     this._draggingLayerId = null; // 前端内存态，不落库、不提交服务端（规格第 5 节）
+    this._shareTitleLoaded = false;
     wx.showShareMenu({ withShareTicket: false });
     this.loadRoom();
   },
@@ -65,10 +76,63 @@ Page({
   },
 
   onShareAppMessage() {
+    const cakeState = (this.data.room && this.data.room.cakeState) || {};
     return {
-      title: '和我一起做一块生日蛋糕',
-      path: '/pages/room/index?token=' + encodeURIComponent(this.data.inviteToken)
+      title: this.data.shareTitle || SHARE_TITLE_PRESETS[0],
+      path: '/pages/room/index?token=' + encodeURIComponent(this.data.inviteToken),
+      imageUrl: resolveShareImage(cakeState.style, cakeState.flavor)
     };
+  },
+
+  // ========== 分享卡片文案（规格 §3.5/§3.6） ==========
+  // 本地存储按 roomId 区分，读取/保存都只影响当前房间，不会跨房间串文案
+  _shareTitleStorageKey() {
+    return SHARE_TITLE_STORAGE_PREFIX + (this.roomId || '');
+  },
+
+  _loadShareTitle() {
+    if (!this.roomId) return;
+    const saved = wx.getStorageSync(this._shareTitleStorageKey());
+    if (saved) {
+      this.setData({ shareTitle: saved });
+    }
+  },
+
+  _saveShareTitle(title) {
+    if (!this.roomId) return;
+    wx.setStorageSync(this._shareTitleStorageKey(), title);
+  },
+
+  openShareTitleEditor() {
+    if (this.data.role !== 'creator') return;
+    this.setData({ shareTitleEditorVisible: true, shareTitleDraft: this.data.shareTitle });
+  },
+
+  closeShareTitleEditor() {
+    this.setData({ shareTitleEditorVisible: false });
+  },
+
+  // 弹层内容区域的 catchtap 占位：阻止点击内容区域时事件冒泡到遮罩层触发 closeShareTitleEditor
+  noop() {},
+
+  selectShareTitlePreset(e) {
+    const title = e.currentTarget.dataset.title;
+    this.setData({ shareTitle: title, shareTitleEditorVisible: false });
+    this._saveShareTitle(title);
+  },
+
+  onShareTitleDraftInput(e) {
+    this.setData({ shareTitleDraft: e.detail.value });
+  },
+
+  confirmShareTitleDraft() {
+    const draft = (this.data.shareTitleDraft || '').trim();
+    if (!draft) {
+      wx.showToast({ title: '文案不能为空', icon: 'none' });
+      return;
+    }
+    this.setData({ shareTitle: draft, shareTitleEditorVisible: false });
+    this._saveShareTitle(draft);
   },
 
   async loadRoom() {
@@ -135,6 +199,12 @@ Page({
 
     this._syncWheelRitual(makingPhase, isInvitee);
     this._syncPolling({ status, makingPhase, inviteeReady: !!room.inviteeReadyAt });
+
+    // 只在拿到 roomId 后第一次加载本地保存的分享文案，避免轮询/重复 applyRoom 时覆盖用户刚选的文案
+    if (!this._shareTitleLoaded) {
+      this._shareTitleLoaded = true;
+      this._loadShareTitle();
+    }
   },
 
   // ========== v1.1 转盘仪式（第 1/2/3 节） ==========
