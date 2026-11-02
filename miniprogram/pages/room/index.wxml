@@ -23,7 +23,25 @@
       <text class="muted">链接只负责找到房间，真实状态和内容都保存在服务端。</text>
     </view>
 
-    <view wx:if="{{room.status === 'draft' || room.status === 'collaborating'}}" class="card">
+    <!-- v1.1：collaborating 阶段内，making_phase 决定展示哪个子阶段的交互（规格第 1 节五态分支） -->
+    <view wx:if="{{room.status === 'collaborating'}}" class="card making-phase-card">
+      <text class="card-title">{{makingPhaseLabel}}</text>
+
+      <block wx:if="{{room.makingPhase === 'awaiting_both'}}">
+        <text class="body-text">等 TA 进房后才能开启转盘。</text>
+      </block>
+
+      <block wx:elif="{{room.makingPhase === 'wheel_ready'}}">
+        <text class="body-text">{{role === 'creator' ? 'TA 已经进房啦，点击开启转盘。' : '等待房主开启转盘。'}}</text>
+        <button wx:if="{{canOpenWheel}}" class="primary-button main-button" bindtap="onWheelOpen">开启转盘</button>
+      </block>
+
+      <block wx:elif="{{room.makingPhase === 'wheel_playing'}}">
+        <text class="body-text">转盘正在播放，请留意屏幕动画。</text>
+      </block>
+    </view>
+
+    <view wx:if="{{room.status === 'draft' || (room.status === 'collaborating' && (room.makingPhase === 'cake_editing' || room.makingPhase === 'decorating'))}}" class="card">
       <text class="card-title">共同制作蛋糕</text>
       <text class="body-text">{{role === 'creator' ? '先打底，寿星进房后会补口味和装饰。' : '选你喜欢的底胚口味，画点装饰，写句祝福。'}}</text>
 
@@ -31,16 +49,26 @@
         id="cakeEditor"
         initial-state="{{room.cakeState}}"
         readonly="{{!canEditCake}}"
-        bind:change="onCakeChange">
+        can-edit-base-flavor="{{canEditBaseFlavor}}"
+        lock-base-flavor="{{lockBaseFlavor}}"
+        bind:change="onCakeChange"
+        bind:draggingLayerChange="onCakeDraggingLayerChange"
+        bind:deleteLayer="onDeleteLayer">
       </cake-editor>
 
       <button wx:if="{{canEditCake}}" class="secondary-button main-button" bindtap="openStickerDrawer">添加装饰</button>
+      <button wx:if="{{role === 'invitee' && room.makingPhase === 'cake_editing'}}" class="primary-button main-button" bindtap="onCakeLock">锁定底胚和口味</button>
 
       <view class="state-line"><text>寿星身份</text><text>{{room.inviteeId ? '已绑定' : '等待 TA 进入'}}</text></view>
       <view class="state-line"><text>寿星确认</text><text>{{inviteeReady ? '已选好' : '未确认'}}</text></view>
       <button wx:if="{{canReady}}" class="primary-button main-button" bindtap="markReady">我选好了</button>
       <button wx:if="{{canSeal}}" class="primary-button main-button" bindtap="sealRoom">封装礼盒</button>
     </view>
+
+    <wheel-ritual
+      visible="{{wheelRitualVisible}}"
+      bind:complete="onWheelRitualComplete">
+    </wheel-ritual>
 
     <sticker-drawer
       visible="{{stickerDrawerVisible}}"

@@ -22,6 +22,10 @@ function formatRoomResponse(room, celebration = null, role = '', inviteToken = '
       sealedAt: room.sealed_at,
       createdAt: room.created_at,
       completedAt: room.completed_at,
+      makingPhase: room.making_phase,
+      wheelStartedAt: room.wheel_started_at,
+      cakeLockedAt: room.cake_locked_at,
+      cakeVersion: room.cake_version,
       celebration: null
     }
   };

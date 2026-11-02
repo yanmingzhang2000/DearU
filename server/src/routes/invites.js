@@ -46,8 +46,12 @@ router.post('/:token/enter', authMiddleware, (req, res) => {
   // 非房主
   if (!room.invitee_id) {
     // 首位非房主，绑定为 invitee，状态从 draft 切到 collaborating
+    // v1.1：若此时 making_phase 仍是初始值 awaiting_both，同一事务内推进为 wheel_ready
+    // （寿星重进/已绑定后再次打开不会走到这个分支，沿用 E4 原有的"既有态直接返回"逻辑，不重复触发）
     db.prepare(`
-      UPDATE room SET invitee_id = ?, status = 'collaborating', last_activity_at = datetime('now')
+      UPDATE room
+      SET invitee_id = ?, status = 'collaborating', last_activity_at = datetime('now'),
+          making_phase = CASE WHEN making_phase = 'awaiting_both' THEN 'wheel_ready' ELSE making_phase END
       WHERE room_id = ?
     `).run(userId, room.room_id);
 

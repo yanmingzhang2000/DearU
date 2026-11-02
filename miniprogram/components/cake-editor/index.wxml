@@ -27,12 +27,12 @@
     </canvas>
   </view>
 
-  <!-- 款式切换工具栏 -->
-  <view class="base-selector">
-    <text class="toolbar-label">蛋糕款式</text>
+  <!-- 款式切换工具栏（v1.1：canEditBaseFlavor 为假时整体禁用态样式，见规格第 4.1 节） -->
+  <view class="base-selector {{!canEditBaseFlavor ? 'base-selector-locked' : ''}}">
+    <text class="toolbar-label">蛋糕款式{{lockBaseFlavor ? '（已锁定）' : (!canEditBaseFlavor ? '（寿星决定）' : '')}}</text>
     <scroll-view class="base-options" scroll-x>
       <view wx:for="{{styles}}" wx:key="value"
-            class="base-option {{cakeState.style === item.value ? 'active' : ''}}"
+            class="base-option {{cakeState.style === item.value ? 'active' : ''}} {{!canEditBaseFlavor ? 'disabled' : ''}}"
             data-style="{{item.value}}"
             bindtap="onStyleChange">
         <image class="base-thumb" src="/assets/cakes/{{item.value}}_{{flavorLocked ? 'original' : cakeState.flavor}}_thumb.png" mode="aspectFit"></image>
@@ -42,11 +42,11 @@
   </view>
 
   <!-- 口味切换工具栏 -->
-  <view class="base-selector">
-    <text class="toolbar-label">口味 {{flavorLocked ? '（巴斯克仅原味）' : ''}}</text>
+  <view class="base-selector {{!canEditBaseFlavor ? 'base-selector-locked' : ''}}">
+    <text class="toolbar-label">口味{{lockBaseFlavor ? '（已锁定）' : (!canEditBaseFlavor ? '（寿星决定）' : (flavorLocked ? '（巴斯克仅原味）' : ''))}}</text>
     <scroll-view class="base-options" scroll-x>
       <view wx:for="{{flavors}}" wx:key="value"
-            class="base-option {{(flavorLocked ? 'original' : cakeState.flavor) === item.value ? 'active' : ''}} {{flavorLocked ? 'disabled' : ''}}"
+            class="base-option {{(flavorLocked ? 'original' : cakeState.flavor) === item.value ? 'active' : ''}} {{(flavorLocked || !canEditBaseFlavor) ? 'disabled' : ''}}"
             data-flavor="{{item.value}}"
             bindtap="onFlavorChange">
         <view class="flavor-dot" style="background: {{item.value === 'vanilla' ? '#FFF8E7' : item.value === 'strawberry' ? '#FFB6C1' : item.value === 'matcha' ? '#A8D5A2' : item.value === 'chocolate' ? '#8B5A3C' : '#FFD580'}};"></view>

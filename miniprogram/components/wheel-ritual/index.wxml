@@ -1,0 +1,18 @@
+<view wx:if="{{visible}}" class="wheel-overlay">
+  <view class="wheel-scene">
+    <view class="dark-gradient"></view>
+
+    <view class="wheel-progress">
+      <view wx:for="{{3}}" wx:key="index"
+            class="progress-dot {{index <= wheelIndex ? 'active' : ''}}"></view>
+    </view>
+
+    <view class="wheel-disc {{stage === 'spinning' ? 'spinning' : ''}}"></view>
+
+    <view class="wheel-text-panel">
+      <text class="wheel-title">{{currentText.title}}</text>
+      <text wx:if="{{stage === 'result'}}" class="wheel-result">{{currentText.result}}</text>
+      <text wx:else class="wheel-hint">转盘转动中…</text>
+    </view>
+  </view>
+</view>

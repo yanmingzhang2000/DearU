@@ -91,19 +91,20 @@ test('full happy path: create room -> invitee binds -> edit cake -> ready -> sea
   const thirdGetRes = await request('GET', `/rooms/${roomId}`, { token: thirdToken });
   assert.strictEqual(thirdGetRes.status, 403);
 
-  // E2/E5: 寿星编辑蛋糕
+  // E2/E5: 寿星编辑蛋糕（此时 making_phase 为 E4 自动推进后的 wheel_ready，style/flavor 不受限）
   const cakeState = {
-    base: 'mousse',
+    style: 'mousse',
+    flavor: 'vanilla',
     layers: [{ id: 'layer_1', type: 'sticker', stickerType: 'strawberry', x: 0, y: 0, scale: 1, rotate: 0, zIndex: 0 }]
   };
   const editRes = await request('PUT', `/rooms/${roomId}/cake`, { token: inviteeToken, body: { cakeState } });
   assert.strictEqual(editRes.status, 200);
   assert.deepStrictEqual(editRes.body.room.cakeState, cakeState);
 
-  // 房主也能在 collaborating 阶段编辑
+  // 房主也能在 wheel_ready 阶段编辑（延续 v1 draft 阶段权限，不受本次改动影响）
   const creatorEditRes = await request('PUT', `/rooms/${roomId}/cake`, {
     token: creatorToken,
-    body: { cakeState: Object.assign({}, cakeState, { base: 'cream' }) }
+    body: { cakeState: Object.assign({}, cakeState, { style: 'cream' }) }
   });
   assert.strictEqual(creatorEditRes.status, 200);
 
