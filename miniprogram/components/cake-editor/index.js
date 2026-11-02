@@ -81,6 +81,7 @@ Component({
       this.cakeState = state;
       this.history = new cakeEditor.EditorHistory();
       this.history.push(state);
+      this._spawnIndex = 0; // P0-2：会话内的落点序号，连续添加自动避堆
       
       // 获取屏幕信息，计算 px 到 rpx 转换比例
       const sysInfo = wx.getSystemInfoSync();
@@ -122,6 +123,12 @@ Component({
           this.renderer = new strokeRenderer.StrokeRenderer(ctx);
           this.canvasWidth = res[0].width;
           this.canvasHeight = res[0].height;
+
+          // P0-3：画布边界（rpx 半宽/半高），拖拽与落点统一用它做约束
+          this.containerBounds = {
+            halfWidth: (res[0].width * this.pxToRpxRatio) / 2,
+            halfHeight: (res[0].height * this.pxToRpxRatio) / 2
+          };
 
           // 渲染现有笔画
           this._redrawStrokes();
@@ -197,17 +204,29 @@ Component({
     },
 
     // ========== Canvas 涂鸦 ==========
+    // P0-5：点空白 = 取消选中；只有拖动超过阈值才起笔，轻点不会画出小点
     onCanvasTouchStart(e) {
       if (this.properties.readonly || !this.canvasCtx) return;
       const touch = e.touches[0];
-      this.setData({
-        _currentStrokePath: [{ x: touch.x, y: touch.y }]
-      });
+      this._strokeStart = { x: touch.x, y: touch.y };
+      this._strokeMoved = false;
+      this.setData({ _currentStrokePath: [] });
     },
 
     onCanvasTouchMove: strokeRenderer.throttle(function(e) {
-      if (this.properties.readonly || !this.canvasCtx || !this.data._currentStrokePath) return;
+      if (this.properties.readonly || !this.canvasCtx || !this._strokeStart) return;
       const touch = e.touches[0];
+
+      if (!this._strokeMoved) {
+        // 未超过起笔阈值前只监听位移，不入路径
+        const dx = touch.x - this._strokeStart.x;
+        const dy = touch.y - this._strokeStart.y;
+        if (dx * dx + dy * dy < 8 * 8) return;
+        this._strokeMoved = true;
+        this.setData({ _currentStrokePath: [this._strokeStart, { x: touch.x, y: touch.y }] });
+        return;
+      }
+
       const path = this.data._currentStrokePath;
       path.push({ x: touch.x, y: touch.y });
       
@@ -228,8 +247,18 @@ Component({
       this.setData({ _currentStrokePath: path });
     }, 16),
 
-    onCanvasTouchEnd(e) {
-      if (this.properties.readonly || !this.data._currentStrokePath || this.data._currentStrokePath.length < 2) {
+    onCanvasTouchEnd() {
+      const moved = this._strokeMoved;
+      this._strokeStart = null;
+      this._strokeMoved = false;
+
+      if (!moved) {
+        // 点空白：取消选中，不产生涂鸦
+        this.setData({ _currentStrokePath: [], selectedLayerId: '' });
+        return;
+      }
+
+      if (!this.data._currentStrokePath || this.data._currentStrokePath.length < 2) {
         this.setData({ _currentStrokePath: [] });
         return;
       }
@@ -285,6 +314,8 @@ Component({
           x: layer.x + delta.dx * ratio,
           y: layer.y + delta.dy * ratio
         });
+        // P0-3：边界约束，拖不出画布
+        cakeEditor.clampLayerPosition(layer, this.containerBounds);
       } else if (e.touches.length === 2) {
         // 双指缩放+旋转
         const pinch = gesture.detectPinch(e.touches, this.data._prevTouches);
@@ -293,6 +324,8 @@ Component({
             scale: Math.max(0.2, Math.min(3.0, layer.scale * pinch.scale)),
             rotate: layer.rotate + pinch.rotate
           });
+          // 缩放放大后盒子占位变大，同样需要回约束
+          cakeEditor.clampLayerPosition(layer, this.containerBounds);
         }
       }
 
@@ -351,7 +384,39 @@ Component({
       // 这里不在本地直接摘除图层，而是把事件交给父组件去调用 DELETE 接口，
       // 接口成功后父组件会用权威响应刷新本组件状态（见 room/index.js onDeleteLayer）。
       if (this.properties.readonly || !this.data.selectedLayerId) return;
+      // 撤销/协作刷新后选中可能已悬空，校验后再发删除
+      const exists = this.cakeState.layers.some(l => l.id === this.data.selectedLayerId);
+      if (!exists) {
+        this.setData({ selectedLayerId: '' });
+        return;
+      }
       this.triggerEvent('deleteLayer', { layerId: this.data.selectedLayerId });
+    },
+
+    // P0-4：选中工具条的变换操作（按钮化，替代不可发现的双指捏合手势；
+    // 双指手势仍保留给熟练用户）
+    onLayerTransform(e) {
+      if (this.properties.readonly || !this.data.selectedLayerId) return;
+      const op = e.currentTarget.dataset.op;
+      const layer = this.cakeState.layers.find(l => l.id === this.data.selectedLayerId);
+      if (!layer) return;
+
+      if (op === 'grow') {
+        layer.scale = Math.min(3.0, layer.scale * 1.25);
+      } else if (op === 'shrink') {
+        layer.scale = Math.max(0.2, layer.scale * 0.8);
+      } else if (op === 'rot-left') {
+        layer.rotate = layer.rotate - 15;
+      } else if (op === 'rot-right') {
+        layer.rotate = layer.rotate + 15;
+      } else {
+        return;
+      }
+
+      // 放大后占位变大，回约束到画布内
+      cakeEditor.clampLayerPosition(layer, this.containerBounds);
+      this.setData({ stickerLayers: this._getStickerLayers(this.cakeState) });
+      this._pushHistory();
     },
 
     onClear() {
@@ -392,22 +457,32 @@ Component({
      */
     applyExternalCakeState(cakeState) {
       this.cakeState = cakeState;
+      // 协作方可能删掉了当前选中的图层，清掉悬空选中，避免工具条指向不存在的图层
+      const stillExists = this.data.selectedLayerId &&
+        cakeState.layers.some(l => l.id === this.data.selectedLayerId);
       this.setData({
         cakeState: cakeState,
         flavorLocked: cakeState.style === cakeEditor.STYLES.BASQUE,
-        stickerLayers: this._getStickerLayers(cakeState)
+        stickerLayers: this._getStickerLayers(cakeState),
+        selectedLayerId: stillExists ? this.data.selectedLayerId : ''
       });
       this._redrawStrokes();
     },
 
     /**
-     * 添加贴纸（供装饰库调用）
+     * 添加贴纸（供装饰库调用）。
+     * P0-2：不传坐标时按落点序列落在顶面区域内，连续添加自动避堆。
      */
     addSticker(stickerType, x, y) {
       if (this.properties.readonly) return;
-      cakeEditor.addSticker(this.cakeState, stickerType, x, y);
+      const spawn = (typeof x === 'number' && typeof y === 'number')
+        ? { x: x, y: y }
+        : cakeEditor.getSpawnPoint(this.cakeState.style, this._spawnIndex++);
+      const layer = cakeEditor.addSticker(this.cakeState, stickerType, spawn.x, spawn.y);
+      cakeEditor.clampLayerPosition(layer, this.containerBounds);
       this.setData({
-        stickerLayers: this._getStickerLayers(this.cakeState)
+        stickerLayers: this._getStickerLayers(this.cakeState),
+        selectedLayerId: layer.id // 新元素直接选中，工具条立刻可用
       });
       this._pushHistory();
     },
@@ -417,9 +492,12 @@ Component({
      */
     addText(text) {
       if (this.properties.readonly || !text) return;
-      cakeEditor.addText(this.cakeState, text, 0, 0);
+      const spawn = cakeEditor.getSpawnPoint(this.cakeState.style, 0, 'text');
+      const layer = cakeEditor.addText(this.cakeState, text, spawn.x, spawn.y);
+      cakeEditor.clampLayerPosition(layer, this.containerBounds);
       this.setData({
-        stickerLayers: this._getStickerLayers(this.cakeState)
+        stickerLayers: this._getStickerLayers(this.cakeState),
+        selectedLayerId: layer.id
       });
       this._pushHistory();
     }

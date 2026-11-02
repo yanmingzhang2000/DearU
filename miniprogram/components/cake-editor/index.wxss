@@ -38,7 +38,7 @@
 }
 
 .sticker-layer.selected {
-  outline: 3rpx dashed #c24d87;
+  outline: 4rpx dashed #c24d87;
   border-radius: 8rpx;
 }
 
@@ -58,14 +58,42 @@
   white-space: nowrap;
 }
 
-/* Canvas 涂鸦层 */
+/* Canvas 涂鸦层（P0-1：垫在贴纸层下面，贴纸才能收到触摸） */
 .stroke-canvas {
   position: absolute;
   left: 0;
   top: 0;
   width: 100%;
   height: 100%;
-  z-index: 10;
+  z-index: 1;
+}
+
+/* P0-4：选中图层工具条 */
+.layer-toolbar {
+  display: flex;
+  margin-top: 16rpx;
+  gap: 12rpx;
+}
+
+.layer-op {
+  flex: 1;
+  font-size: 24rpx;
+  padding: 0;
+  height: 64rpx;
+  line-height: 64rpx;
+  border-radius: 32rpx;
+  background: #fff0f6;
+  color: #a43d70;
+  border: none;
+}
+
+.layer-op::after {
+  border: none;
+}
+
+.layer-op.danger {
+  background: #ffe5e5;
+  color: #c14468;
 }
 
 /* 底胚选择器 */

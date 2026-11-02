@@ -483,8 +483,8 @@ Page({
     const stickerType = e.detail.stickerType;
     const editor = this.selectComponent('#cakeEditor');
     if (editor) {
-      // 新贴纸放在画布中心
-      editor.addSticker(stickerType, 0, 0);
+      // 不传坐标：由编辑器按智能落点落在顶面区域内（P0-2）
+      editor.addSticker(stickerType);
     }
   }
 });

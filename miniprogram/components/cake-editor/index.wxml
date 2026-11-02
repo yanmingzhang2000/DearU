@@ -4,10 +4,10 @@
     <!-- 底胚背景 -->
     <image class="cake-base" src="/assets/cakes/{{cakeState.style}}_{{cakeState.flavor}}.png" mode="aspectFit"></image>
     
-    <!-- 贴纸层 -->
+    <!-- 贴纸层（P0-1：z-index 从 10 起，压过涂鸦 canvas，触摸才能落到贴纸上） -->
     <view wx:for="{{stickerLayers}}" wx:key="id" 
           class="sticker-layer {{selectedLayerId === item.id ? 'selected' : ''}}"
-          style="transform: translate({{item.x}}rpx, {{item.y}}rpx) rotate({{item.rotate}}deg) scale({{item.scale}}); z-index: {{item.zIndex}};"
+          style="transform: translate({{item.x}}rpx, {{item.y}}rpx) rotate({{item.rotate}}deg) scale({{item.scale}}); z-index: {{item.zIndex + 10}};"
           data-layer-id="{{item.id}}"
           catchtouchstart="onStickerTouchStart"
           catchtouchmove="onStickerTouchMove"
@@ -25,6 +25,15 @@
       catchtouchmove="onCanvasTouchMove"
       catchtouchend="onCanvasTouchEnd">
     </canvas>
+  </view>
+
+  <!-- P0-4：选中图层工具条（按钮化操作；选中贴纸/文字后出现，点空白处消失） -->
+  <view wx:if="{{selectedLayerId && !readonly}}" class="layer-toolbar">
+    <button class="layer-op danger" data-op="delete" bindtap="onDeleteLayer">删除</button>
+    <button class="layer-op" data-op="shrink" bindtap="onLayerTransform">缩小</button>
+    <button class="layer-op" data-op="grow" bindtap="onLayerTransform">放大</button>
+    <button class="layer-op" data-op="rot-left" bindtap="onLayerTransform">左转</button>
+    <button class="layer-op" data-op="rot-right" bindtap="onLayerTransform">右转</button>
   </view>
 
   <!-- 款式切换工具栏（v1.1：canEditBaseFlavor 为假时整体禁用态样式，见规格第 4.1 节） -->

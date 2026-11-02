@@ -42,6 +42,64 @@ const BRUSH_TYPES = {
   ZIGZAG: 'zigzag'     // 锯齿
 };
 
+// ========== P0 交互修复：落点与边界 ==========
+
+// 贴纸/文字图层的盒尺寸（rpx），与 .sticker-layer CSS 保持一致
+const STICKER_BOX_RPX = 120;
+
+// 顶面区域落点序列（相对画布中心，rpx）：
+// 连续添加时循环取点，避免全部堆在画布正中。y 为负 = 画布上半部（顶面所在）。
+const SPAWN_OFFSETS = [
+  { x: 0, y: -140 },
+  { x: -105, y: -115 },
+  { x: 105, y: -115 },
+  { x: -55, y: -65 },
+  { x: 55, y: -65 },
+  { x: 0, y: -205 },
+  { x: -160, y: -70 },
+  { x: 160, y: -70 }
+];
+
+// 文字祝福默认落点：正面居中（顶面下方）
+const TEXT_SPAWN = { x: 0, y: 60 };
+
+/**
+ * 计算新图层的落点（P0-2 智能落点）
+ * - 贴纸：按序号循环取顶面区域内的基准点；巴斯克顶面更扁，y 方向压缩
+ * - 文字：固定落在正面居中
+ * @param {string} style - 底胚款式
+ * @param {number} sequenceIndex - 本次会话内的添加序号
+ * @param {string} kind - 'sticker' | 'text'
+ * @returns {{x: number, y: number}} rpx 偏移（相对画布中心）
+ */
+function getSpawnPoint(style, sequenceIndex, kind = 'sticker') {
+  if (kind === 'text') {
+    return { x: TEXT_SPAWN.x, y: TEXT_SPAWN.y };
+  }
+  const yScale = style === STYLES.BASQUE ? 0.6 : 1;
+  const len = SPAWN_OFFSETS.length;
+  const idx = ((sequenceIndex || 0) % len + len) % len;
+  const p = SPAWN_OFFSETS[idx];
+  return { x: p.x, y: Math.round(p.y * yScale) };
+}
+
+/**
+ * 把图层中心约束在画布内（P0-3 边界约束）
+ * 边距按当前缩放后的盒子半径留白，贴纸不会被拖出画布消失。
+ * @param {Object} layer - 图层对象（原地修改 x/y）
+ * @param {{halfWidth: number, halfHeight: number}} bounds - 画布半宽/半高（rpx）
+ * @returns {Object} 同一 layer
+ */
+function clampLayerPosition(layer, bounds) {
+  if (!layer || !bounds) return layer;
+  const margin = (STICKER_BOX_RPX * (layer.scale || 1)) / 2;
+  const maxX = Math.max(0, bounds.halfWidth - margin);
+  const maxY = Math.max(0, bounds.halfHeight - margin);
+  layer.x = Math.max(-maxX, Math.min(maxX, layer.x));
+  layer.y = Math.max(-maxY, Math.min(maxY, layer.y));
+  return layer;
+}
+
 /**
  * 创建空白蛋糕状态
  * @param {string} style - 底胚款式，默认奶油
@@ -278,5 +336,8 @@ module.exports = {
   removeLayer,
   changeStyle,
   changeFlavor,
+  getSpawnPoint,
+  clampLayerPosition,
+  STICKER_BOX_RPX,
   EditorHistory
 };
