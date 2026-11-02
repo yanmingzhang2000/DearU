@@ -2,6 +2,21 @@
 // 数据库用 snake_case，前端 API 契约用 camelCase
 
 /**
+ * 安全解析 JSON 字符串
+ * @param {string} raw - 数据库中的 JSON 文本
+ * @param {*} fallback - 解析失败时的默认值
+ * @returns {Object}
+ */
+function parseJson(raw, fallback) {
+  if (typeof raw !== 'string' || !raw) return fallback;
+  try {
+    return JSON.parse(raw);
+  } catch (e) {
+    return fallback;
+  }
+}
+
+/**
  * 转换房间对象为前端 API 格式
  * @param {Object} room - 数据库 room 行
  * @param {Object} celebration - 数据库 celebration 行（可选）
@@ -14,7 +29,7 @@ function formatRoomResponse(room, celebration = null, role = '', inviteToken = '
     room: {
       roomId: room.room_id,
       status: room.status,
-      cakeState: typeof room.cake_state === 'string' ? JSON.parse(room.cake_state) : room.cake_state,
+      cakeState: parseJson(room.cake_state, {}),
       creatorId: room.creator_id,
       inviteeId: room.invitee_id,
       inviteLinkToken: room.invite_link_token,
@@ -22,6 +37,7 @@ function formatRoomResponse(room, celebration = null, role = '', inviteToken = '
       sealedAt: room.sealed_at,
       createdAt: room.created_at,
       completedAt: room.completed_at,
+      celebrationConfig: parseJson(room.celebration_config, {}),
       celebration: null
     }
   };

@@ -9,9 +9,8 @@ Page({
     error: '',
     room: null,
     role: '',
-    roleLabel: '',
-    statusLabel: '',
-    route: '',
+    situationLabel: '',
+    inviteeNickname: '',
     inviteToken: '',
     invitePath: '',
     canSendInvite: false,
@@ -44,7 +43,7 @@ Page({
 
   onShareAppMessage() {
     return {
-      title: '和我一起做一块生日蛋糕',
+      title: '给你做了个蛋糕，等它到的时候，我们一起吹蜡烛 🎂',
       path: '/pages/room/index?token=' + encodeURIComponent(this.data.inviteToken)
     };
   },
@@ -74,14 +73,14 @@ Page({
     const status = room.status;
     const inviteToken = payload.inviteToken || this.inviteToken || '';
     this.inviteToken = inviteToken;
+    const celebrationConfig = room.celebrationConfig || {};
     this.setData({
       loading: false,
       error: '',
       room: room,
       role: role,
-      roleLabel: roomRoute.roleLabel(role),
-      statusLabel: roomRoute.statusLabel(status),
-      route: payload.route || room.route || '',
+      situationLabel: roomRoute.situationLabel(status),
+      inviteeNickname: celebrationConfig.inviteeNickname || '',
       inviteToken: inviteToken,
       invitePath: inviteToken ? '/pages/room/index?token=' + inviteToken : '',
       canSendInvite: role === 'creator' && status !== 'completed',
@@ -113,25 +112,25 @@ Page({
       this.inviteToken = result.invite.token;
       this.setData({ inviteToken: this.inviteToken, invitePath: result.invite.path });
       wx.setClipboardData({ data: result.invite.path });
-      wx.showToast({ title: '邀请路径已复制', icon: 'success' });
+      wx.showToast({ title: '邀请链接已复制', icon: 'success' });
     } catch (error) {
       this.showError(error);
     }
   },
 
   async markReady() {
-    await this.action('/rooms/' + this.data.room.roomId + '/ready', 'POST', {}, '已记录你的选择');
+    await this.action('/rooms/' + this.data.room.roomId + '/ready', 'POST', {}, '已经记下了你的心意');
   },
 
   async sealRoom() {
     const that = this;
     wx.showModal({
       title: '封装礼盒',
-      content: '封装后蛋糕内容将锁定，双方进入等待庆祝。',
+      content: '封装后蛋糕内容会锁定，你们就可以一起庆祝了。',
       confirmText: '确认封装',
       success: function (result) {
         if (result.confirm) {
-          that.action('/rooms/' + that.data.room.roomId + '/seal', 'POST', {}, '已封装，等待庆祝');
+          that.action('/rooms/' + that.data.room.roomId + '/seal', 'POST', {}, '封好了，去叫 TA 一起来庆祝吧');
         }
       }
     });
@@ -146,7 +145,7 @@ Page({
   async onRitualComplete() {
     // 全屏仪式走完（点烛→唱歌→吹烛→彩带许愿），关闭仪式并上报完成
     this.setData({ ritualVisible: false });
-    await this.action('/rooms/' + this.data.room.roomId + '/celebration/complete', 'POST', { duration: 0 }, '已记录本次庆祝');
+    await this.action('/rooms/' + this.data.room.roomId + '/celebration/complete', 'POST', { duration: 0 }, '已经记下了这次庆祝');
   },
 
   async action(path, method, data, successMessage) {
@@ -163,7 +162,7 @@ Page({
   copyInvitePath() {
     if (!this.data.invitePath) return;
     wx.setClipboardData({ data: this.data.invitePath });
-    wx.showToast({ title: '邀请路径已复制', icon: 'success' });
+    wx.showToast({ title: '邀请链接已复制', icon: 'success' });
   },
 
   reportExpression() {
@@ -203,13 +202,50 @@ Page({
       });
     } catch (error) {
       // 保存失败不打断编辑体验，只提示，不回滚本地状态
-      wx.showToast({ title: '蛋糕未保存，请检查网络', icon: 'none' });
+      wx.showToast({ title: '蛋糕没存上，检查一下网络再继续', icon: 'none' });
     }
   },
 
   openStickerDrawer() {
     if (!this.data.canEditCake) return;
     this.setData({ stickerDrawerVisible: true });
+  },
+
+  // 写句祝福：弹出输入框，确认后作为文字图层贴到蛋糕上
+  writeBlessing() {
+    if (!this.data.canEditCake) return;
+    const that = this;
+    wx.showModal({
+      title: '写句祝福',
+      editable: true,
+      placeholderText: '写给 TA 的话，会贴在蛋糕上',
+      confirmText: '贴上去',
+      success(res) {
+        if (!res.confirm) return;
+        const text = String(res.content || '').trim();
+        if (!text) return;
+        const editor = that.selectComponent('#cakeEditor');
+        if (editor) {
+          editor.addText(text);
+        }
+      }
+    });
+  },
+
+  // 房主设定寿星昵称（写进歌词第 4 句），失焦时保存
+  async onNicknameBlur(e) {
+    if (this.data.role !== 'creator' || !this.data.room) return;
+    const nickname = String(e.detail.value || '').trim();
+    if (nickname === (this.data.inviteeNickname || '')) return;
+    try {
+      await api.request('/rooms/' + this.data.room.roomId + '/nickname', {
+        method: 'PUT',
+        data: { nickname: nickname }
+      });
+      this.setData({ inviteeNickname: nickname });
+    } catch (error) {
+      wx.showToast({ title: '昵称没存上，检查一下网络', icon: 'none' });
+    }
   },
 
   onStickerDrawerClose() {

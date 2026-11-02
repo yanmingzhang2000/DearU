@@ -152,6 +152,39 @@ router.post('/:id/invite', authMiddleware, (req, res) => {
   });
 });
 
+// POST /rooms/:id/nickname - 房主设定寿星昵称（写进歌词第 4 句，存 celebration_config）
+router.put('/:id/nickname', authMiddleware, (req, res) => {
+  const roomId = req.params.id;
+  const userId = req.user.user_id;
+
+  const room = db.prepare('SELECT * FROM room WHERE room_id = ? AND deleted_at IS NULL').get(roomId);
+  if (!room) {
+    return res.status(404).json({
+      error: { code: 'ROOM_NOT_FOUND', message: '房间不存在' }
+    });
+  }
+
+  if (room.creator_id !== userId) {
+    return res.status(403).json({
+      error: { code: 'FORBIDDEN', message: '仅房主可设定昵称' }
+    });
+  }
+
+  const nickname = String(req.body.nickname || '').trim().slice(0, 12);
+  let config = {};
+  try {
+    config = JSON.parse(room.celebration_config || '{}');
+  } catch (e) {
+    config = {};
+  }
+  config.inviteeNickname = nickname;
+
+  db.prepare('UPDATE room SET celebration_config = ? WHERE room_id = ?')
+    .run(JSON.stringify(config), roomId);
+
+  res.json({ celebrationConfig: config });
+});
+
 // POST /rooms/:id/ready - 寿星"我选好了"（E6）
 router.post('/:id/ready', authMiddleware, (req, res) => {
   const roomId = req.params.id;

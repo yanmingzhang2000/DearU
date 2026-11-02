@@ -37,11 +37,26 @@
   font-size: 24rpx;
 }
 
-.room-meta {
-  display: block;
-  margin-top: 16rpx;
-  color: #9c7d8c;
-  font-size: 24rpx;
+.nickname-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 24rpx;
+  padding-bottom: 18rpx;
+  border-bottom: 2rpx solid #fff0f6;
+}
+
+.nickname-label {
+  color: #73445c;
+  font-size: 26rpx;
+}
+
+.nickname-input {
+  flex: 1;
+  margin-left: 20rpx;
+  text-align: right;
+  color: #572b46;
+  font-size: 26rpx;
 }
 
 .card-title {

@@ -14,6 +14,11 @@
       catchtouchstart="onCandleTouch">
     </canvas>
     
+    <!-- 点烛轻引导（lighting 阶段，约 2 秒后自动消失进入下一阶段） -->
+    <view wx:if="{{stage === 'lighting'}}" class="lighting-hint">
+      <text class="lighting-text">蜡烛亮了…</text>
+    </view>
+    
     <!-- 歌词高亮（singing 阶段） -->
     <view wx:if="{{stage === 'singing'}}" class="lyrics-panel">
       <view wx:for="{{lyrics}}" wx:key="index"
@@ -25,7 +30,7 @@
     <!-- 吹蜡烛提示（blowing 阶段） -->
     <view wx:if="{{stage === 'blowing'}}" class="blow-hint">
       <text class="blow-text">{{blowHintText}}</text>
-      <text class="blow-fallback-hint">麦克风检测失败？点击火焰也可熄灭</text>
+      <text class="blow-fallback-hint">麦克风不好用？点击火焰也能吹灭</text>
     </view>
     
     <!-- 彩带渲染层（wishing 阶段） -->

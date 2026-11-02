@@ -29,7 +29,7 @@
 
   <!-- 款式切换工具栏 -->
   <view class="base-selector">
-    <text class="toolbar-label">蛋糕款式</text>
+    <text class="toolbar-label">蛋糕底胚</text>
     <scroll-view class="base-options" scroll-x>
       <view wx:for="{{styles}}" wx:key="value"
             class="base-option {{cakeState.style === item.value ? 'active' : ''}}"

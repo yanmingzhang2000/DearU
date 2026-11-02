@@ -75,7 +75,7 @@ Page({
 
   async enterRoom() {
     if (!this.data.token) {
-      this.setData({ message: '请先粘贴邀请 token' });
+      this.setData({ message: '请先粘贴邀请链接' });
       return;
     }
     this.setData({ loading: true, message: '' });

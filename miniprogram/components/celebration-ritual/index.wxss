@@ -33,6 +33,28 @@
   z-index: 10;
 }
 
+.lighting-hint {
+  position: absolute;
+  left: 0;
+  top: 22%;
+  width: 100%;
+  text-align: center;
+  z-index: 20;
+}
+
+.lighting-text {
+  color: rgba(255, 235, 200, 0.9);
+  font-size: 34rpx;
+  letter-spacing: 4rpx;
+  animation: lighting-fade 2s ease forwards;
+}
+
+@keyframes lighting-fade {
+  0% { opacity: 0; }
+  30% { opacity: 1; }
+  100% { opacity: 0.85; }
+}
+
 .lyrics-panel {
   position: absolute;
   left: 0;

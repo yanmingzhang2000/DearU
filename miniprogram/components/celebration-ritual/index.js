@@ -2,12 +2,13 @@
 // 完整状态机：lighting（点蜡烛）→ singing（唱生日歌+歌词高亮）→ blowing（吹蜡烛+麦克风检测）→ wishing（彩带许愿）→ complete
 const { FlameRenderer } = require('../../utils/flame-renderer');
 const { ConfettiRenderer } = require('../../utils/confetti');
-const { DEFAULT_LYRICS, findActiveLyricIndex } = require('../../utils/lyrics-sync');
+const { DEFAULT_LYRICS, buildLyrics, findActiveLyricIndex } = require('../../utils/lyrics-sync');
 const { calculateRMS, BlowDetector } = require('../../utils/blow-detector');
 
 Component({
   properties: {
-    visible: { type: Boolean, value: false }
+    visible: { type: Boolean, value: false },
+    nickname: { type: String, value: '' } // 寿星昵称（房主设定），歌词第 4 句引用
   },
 
   data: {
@@ -48,7 +49,12 @@ Component({
     },
 
     async _startRitual() {
-      this.setData({ stage: 'lighting', activeLyricIndex: -1 });
+      // 按寿星昵称生成歌词（第 4 句：亲爱的{昵称}生日快乐）
+      this.setData({
+        stage: 'lighting',
+        activeLyricIndex: -1,
+        lyrics: buildLyrics(this.data.nickname)
+      });
 
       // 等待 canvas 节点创建，启动蜡烛渲染循环
       await this._waitFor(100);

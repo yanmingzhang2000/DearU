@@ -1,8 +1,8 @@
 <view class="page">
   <view class="hero">
-    <text class="eyebrow">DearU · v1 最小原型</text>
+    <text class="eyebrow">给异地的 TA，一份生日惊喜</text>
     <text class="title">一起做一块蛋糕</text>
-    <text class="subtitle">给异地的 TA，一场只有你们能完成的生日仪式。</text>
+    <text class="subtitle">隔着屏幕，给 TA 一场蛋糕和真蛋糕一起抵达的生日仪式。</text>
   </view>
 
   <view wx:if="{{devMode}}" class="card dev-card">
@@ -16,14 +16,14 @@
 
   <view class="card">
     <view class="section-title">从零开始</view>
-    <text class="body-text">建一个生日房间，先由房主打底，再把唯一邀请链接发给寿星一起完成。</text>
+    <text class="body-text">建一个生日房间，你来发起，把邀请发给 TA，一起把这块蛋糕做完。</text>
     <button class="primary-button main-button" loading="{{loading}}" bindtap="createRoom">创建生日房间</button>
   </view>
 
   <view class="card">
-    <view class="section-title">已有邀请</view>
-    <text class="body-text">粘贴邀请 token。房间状态由服务端读取，链接本身不携带状态。</text>
-    <input class="token-input" value="{{token}}" maxlength="128" placeholder="粘贴邀请 token" bindinput="onTokenInput" />
+    <view class="section-title">TA 已经邀请你了？</view>
+    <text class="body-text">已经有 TA 发来的邀请链接？粘贴进来就能进房间。</text>
+    <input class="token-input" value="{{token}}" maxlength="128" placeholder="粘贴邀请链接" bindinput="onTokenInput" />
     <button class="secondary-button main-button" loading="{{loading}}" bindtap="enterRoom">进入房间</button>
   </view>
 

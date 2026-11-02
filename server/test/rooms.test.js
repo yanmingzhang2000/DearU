@@ -231,3 +231,52 @@ test('unknown route returns 404 NOT_FOUND', async () => {
   assert.strictEqual(res.status, 404);
   assert.strictEqual(res.body.error.code, 'NOT_FOUND');
 });
+
+test('creator can set invitee nickname and it is exposed in room response', async () => {
+  const creatorToken = await loginAs(request, 'creator');
+  const inviteeToken = await loginAs(request, 'invitee');
+
+  // 建房 + 寿星进房（绑定 invitee）
+  const createRes = await request('POST', '/rooms', { token: creatorToken, body: {} });
+  const roomId = createRes.body.room.roomId;
+  const token = createRes.body.invite.token;
+  await request('POST', '/invites/' + token + '/enter', { token: inviteeToken, body: {} });
+
+  // 房主设定昵称
+  const setRes = await request('PUT', '/rooms/' + roomId + '/nickname', { token: creatorToken, body: { nickname: '小笨蛋' } });
+  assert.strictEqual(setRes.status, 200);
+  assert.strictEqual(setRes.body.celebrationConfig.inviteeNickname, '小笨蛋');
+
+  // GET 房间时返回 celebrationConfig
+  const roomRes = await request('GET', '/rooms/' + roomId, { token: creatorToken });
+  assert.strictEqual(roomRes.status, 200);
+  assert.strictEqual(roomRes.body.room.celebrationConfig.inviteeNickname, '小笨蛋');
+});
+
+test('invitee cannot set nickname (creator-only)', async () => {
+  const creatorToken = await loginAs(request, 'creator');
+  const inviteeToken = await loginAs(request, 'invitee');
+
+  const createRes = await request('POST', '/rooms', { token: creatorToken, body: {} });
+  const roomId = createRes.body.room.roomId;
+  const token = createRes.body.invite.token;
+  await request('POST', '/invites/' + token + '/enter', { token: inviteeToken, body: {} });
+
+  const setRes = await request('PUT', '/rooms/' + roomId + '/nickname', { token: inviteeToken, body: { nickname: 'hacker' } });
+  assert.strictEqual(setRes.status, 403);
+  assert.strictEqual(setRes.body.error.code, 'FORBIDDEN');
+});
+
+test('nickname is trimmed and capped at 12 chars', async () => {
+  const creatorToken = await loginAs(request, 'creator');
+  const createRes = await request('POST', '/rooms', { token: creatorToken, body: {} });
+  const roomId = createRes.body.room.roomId;
+
+  const setRes = await request('PUT', '/rooms/' + roomId + '/nickname', {
+    token: creatorToken,
+    body: { nickname: '   a very long nickname beyond limit   ' }
+  });
+  assert.strictEqual(setRes.status, 200);
+  assert.strictEqual(setRes.body.celebrationConfig.inviteeNickname.length, 12);
+  assert.ok(setRes.body.celebrationConfig.inviteeNickname.startsWith('a very lo'));
+});

@@ -381,6 +381,18 @@ Component({
         stickerLayers: this._getStickerLayers(this.cakeState)
       });
       this._pushHistory();
+    },
+
+    /**
+     * 添加文字祝福（供页面「写句祝福」入口调用）
+     */
+    addText(text) {
+      if (this.properties.readonly || !text) return;
+      cakeEditor.addText(this.cakeState, text, 0, 0);
+      this.setData({
+        stickerLayers: this._getStickerLayers(this.cakeState)
+      });
+      this._pushHistory();
     }
   }
 });

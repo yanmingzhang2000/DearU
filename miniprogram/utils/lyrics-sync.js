@@ -3,15 +3,28 @@
 // v1 歌词固定（生日歌），不需要解析 LRC 文件格式，直接用结构化数组定义时间戳
 
 /**
- * 默认歌词时间轴（中文"祝你生日快乐"，4句经典歌词）
+ * 默认歌词时间轴（中文《生日快乐》标准版，4句）
  * 时间戳需要配合实际占位/正式音频长度调整
+ * 第 4 句含寿星昵称，见 buildLyrics()
  */
 const DEFAULT_LYRICS = [
   { t: 0.0, text: '祝你生日快乐' },
   { t: 3.0, text: '祝你生日快乐' },
-  { t: 6.0, text: '祝你永远快乐' },
-  { t: 9.5, text: '祝你生日快乐' }
+  { t: 6.0, text: '祝你生日快乐' },
+  { t: 9.5, text: '亲爱的你生日快乐' }
 ];
+
+/**
+ * 按寿星昵称生成歌词（修订版文案 C2：第 4 句 = 亲爱的{昵称}生日快乐）
+ * @param {string} nickname - 房主设定的寿星昵称
+ * @returns {Array} [{t, text}, ...]
+ */
+function buildLyrics(nickname) {
+  const name = (nickname || '').trim() || '你';
+  return DEFAULT_LYRICS.map(function (line, index) {
+    return index === 3 ? { t: line.t, text: '亲爱的' + name + '生日快乐' } : { t: line.t, text: line.text };
+  });
+}
 
 /**
  * 根据当前播放时间找到应该高亮的歌词行索引
@@ -31,4 +44,4 @@ function findActiveLyricIndex(lyrics, currentTime) {
   return activeIndex;
 }
 
-module.exports = { DEFAULT_LYRICS, findActiveLyricIndex };
+module.exports = { DEFAULT_LYRICS, buildLyrics, findActiveLyricIndex };
