@@ -68,3 +68,47 @@ test('clampLayerPosition tolerates missing bounds (canvas not ready yet)', () =>
   cakeEditor.clampLayerPosition(layer, null);
   assert.strictEqual(layer.x, 999, 'no bounds = no clamp, no crash');
 });
+
+// P2-2：拖拽吸附引导（findSnapPoint）
+test('findSnapPoint snaps to the nearest suggested point within radius', () => {
+  // (0, -140) 是 cream 的一个建议落点，偏移 10rpx 仍应命中（半径默认 45）
+  const snap = cakeEditor.findSnapPoint(10, -135, 'cream');
+  assert.ok(snap, 'should snap when within radius');
+  assert.strictEqual(snap.x, 0);
+  assert.strictEqual(snap.y, -140);
+});
+
+test('findSnapPoint returns null when far from all suggested points', () => {
+  const snap = cakeEditor.findSnapPoint(300, 280, 'cream');
+  assert.strictEqual(snap, null, 'should not snap when far from any suggested point');
+});
+
+test('findSnapPoint respects basque y-compression (same offsets as getSpawnPoint)', () => {
+  const basqueSnap = cakeEditor.findSnapPoint(0, -84, 'basque'); // -140 * 0.6 = -84
+  assert.ok(basqueSnap, 'should snap to the compressed basque point');
+  assert.strictEqual(basqueSnap.y, -84);
+});
+
+test('findSnapPoint picks the closer point when two candidates are both in radius', () => {
+  // 不依赖具体坐标值，只验证返回的点确实是候选集合中离输入最近的一个
+  const x = 100;
+  const y = -100;
+  const snap = cakeEditor.findSnapPoint(x, y, 'cream', 200); // 放大半径，制造多候选场景
+  assert.ok(snap);
+  let minDist = Infinity;
+  for (let i = 0; i < 20; i++) {
+    const candidate = cakeEditor.getSpawnPoint('cream', i);
+    const d = Math.hypot(candidate.x - x, candidate.y - y);
+    if (d < minDist) minDist = d;
+  }
+  const snapDist = Math.hypot(snap.x - x, snap.y - y);
+  assert.ok(Math.abs(snapDist - minDist) < 1, 'snap point should be the globally nearest candidate');
+});
+
+test('findSnapPoint accepts a custom snap radius', () => {
+  const farPoint = { x: 50, y: -130 }; // 距 (0,-140) 约 51.5rpx，超出默认 45 半径
+  const noSnap = cakeEditor.findSnapPoint(farPoint.x, farPoint.y, 'cream');
+  assert.strictEqual(noSnap, null, 'default radius should not reach this distance');
+  const snapWithLargerRadius = cakeEditor.findSnapPoint(farPoint.x, farPoint.y, 'cream', 60);
+  assert.ok(snapWithLargerRadius, 'larger radius should reach this distance');
+});

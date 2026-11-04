@@ -65,6 +65,38 @@ shared/        前后端共享契约
 
   生产环境建议用系统 cron（Linux）、任务计划程序（Windows）或云函数定时触发器，每天调度一次 `npm run cleanup`。不内建调度是为了避免"进程重启后定时器丢失或重复触发"的运维风险，交给平台原生的定时任务机制更可靠。
 
+  **清理日志**：每次通过 CLI 执行（`npm run cleanup` / `npm run cleanup:dry-run`）后，无论是否有房间被清理，都会追加写一行到 `server/data/cleanup.log`（含时间戳、dry-run 标记、被清理房间的 room_id/状态/原因）。这是专门为"后台调度场景"准备的——cron 跑完没人盯着终端，`console.log` 的内容看不到，必须落盘才能事后排查"昨晚到底清了哪些房间"。该文件已被 `.gitignore` 的 `*.log` 规则排除，不会被提交；通过 `require('../scripts/cleanup-rooms')` 直接调用 `runCleanup()` 纯函数（测试用的方式）不会写日志，只有 CLI 入口会写。
+
+  **生产环境调度配置（部署到真实服务器后再做，本地开发机不需要配）**：
+
+  - **Linux（crontab，多数生产场景）**：
+
+    ```bash
+    # 1. 确认 node 可执行文件的绝对路径（cron 环境变量很精简，PATH 里通常没有 nvm/手动装的 node）
+    which node   # 例如输出 /usr/bin/node 或 /home/deploy/.nvm/versions/node/v20.x.x/bin/node
+
+    # 2. 编辑该部署用户的 crontab
+    crontab -e
+
+    # 3. 添加一行：每天凌晨 3:00 执行一次（错开白天高峰，避免清理时恰好有人在操作房间）
+    #    务必用绝对路径（node 可执行文件 + 项目目录），cron 不会继承你 shell 里的 cd/alias
+    0 3 * * * cd /path/to/DearU/server && /usr/bin/node scripts/cleanup-rooms.js >> data/cleanup-cron-stdout.log 2>&1
+    ```
+
+    `>> ... 2>&1` 这段是把 cron 本身的标准输出/报错（比如 node 路径写错、脚本抛未捕获异常）额外存一份，和脚本内部业务层的 `cleanup.log` 是两个不同层面的日志，排查"调度没生效"时看这个，排查"清理逻辑结果"时看 `cleanup.log`。
+
+  - **Windows（任务计划程序，如果生产部署在 Windows Server）**：
+
+    1. 打开"任务计划程序"（Task Scheduler）→ 右侧"创建基本任务"
+    2. 触发器：每天，设定一个低峰时段（如凌晨 3:00）
+    3. 操作：选择"启动程序"
+       - 程序/脚本：填 `node` 可执行文件的绝对路径（命令行输入 `where node` 查看）
+       - 添加参数：`scripts/cleanup-rooms.js`
+       - 起始于：填 `server` 目录的绝对路径（相当于 cwd，脚本里用的相对路径 `../data/dearu-v1.db` 依赖这个起始目录是 `server/`，填错会导致找不到数据库文件）
+    4. 创建后建议先手动"运行"一次，确认 `server/data/cleanup.log` 有新增一行，再放心交给定时触发
+
+  - **云函数定时触发器（如用 serverless 部署）**：思路一致——定时触发器调用一个入口，入口内 `require('./scripts/cleanup-rooms').runCleanup(db)`（直接调纯函数，自己管理 db 连接的开关），不依赖本地文件系统写日志的话可以把结果转发到云平台自带的日志服务，视具体云厂商 API 而定，这里不展开。
+
 ### 分享卡片文案与封面图
 
 对应 `亲爱的你-产品规格与版本路线图.md` §3.5/§3.6。实现在 `miniprogram/utils/share-presets.js` + `miniprogram/pages/room/index.js` 的 `onShareAppMessage`：

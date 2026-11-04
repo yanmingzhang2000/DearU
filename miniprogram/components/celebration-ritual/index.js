@@ -134,9 +134,10 @@ Component({
     },
 
     _playSong() {
-      // 创建音频播放器，播放生日歌（v1 用占位静音 MP3，正式版替换真实录音）
+      // 创建音频播放器，播放庆祝曲目（不要求必须是"生日歌"字面内容，
+      // 只要求寓意好 + 免费授权，见 assets/audio/README.txt 的获取指南）
       this._audio = wx.createInnerAudioContext();
-      this._audio.src = '/assets/audio/birthday-song.mp3'; // 占位文件，需手动放置或替换为真实录音
+      this._audio.src = '/assets/audio/celebration-song.mp3'; // 需手动放置免费授权音频文件，见 README
       this._audio.obeyMuteSwitch = false; // iOS 忽略静音键
 
       this._audio.onTimeUpdate(() => {
@@ -154,7 +155,7 @@ Component({
       });
 
       this._audio.onError((err) => {
-        console.error('音频播放失败（占位文件不存在或格式错误），3秒后自动跳过', err);
+        console.error('音频播放失败（celebration-song.mp3 不存在或格式错误），3秒后自动跳过', err);
         setTimeout(() => {
           this.setData({ stage: 'blowing' });
           this._startBlowDetection();

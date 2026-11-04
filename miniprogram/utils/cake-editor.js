@@ -112,6 +112,40 @@ function getSpawnPoint(style, sequenceIndex, kind = 'sticker') {
   return { x: p.x, y: Math.round(p.y * yScale) };
 }
 
+// P2-2 吸附半径（rpx）：拖拽中的贴纸中心点与建议落点的距离小于此值即触发吸附
+const SNAP_RADIUS_RPX = 45;
+
+/**
+ * 拖拽辅助：在当前拖拽坐标附近寻找最近的"建议落点"（复用 SPAWN_OFFSETS，
+ * 这些点位本身就是算法布好的顶面协调位置）。命中吸附半径内则返回该点坐标供组件对齐，
+ * 否则返回 null（不吸附，用户可以拖到任意位置，这只是辅助不是强制）。
+ * 不修改任何已有图层，不读取 cakeState.layers，纯粹是"离这个坐标最近的建议点在哪"的几何查询。
+ * @param {number} x - 当前拖拽坐标 x（rpx，相对画布中心）
+ * @param {number} y - 当前拖拽坐标 y（rpx，相对画布中心）
+ * @param {string} style - 底胚款式（basque 顶面更扁，建议点同样压缩）
+ * @param {number} snapRadius - 吸附半径（rpx），默认 SNAP_RADIUS_RPX
+ * @returns {{x: number, y: number}|null} 命中的建议点坐标，或 null
+ */
+function findSnapPoint(x, y, style, snapRadius = SNAP_RADIUS_RPX) {
+  const yScale = style === STYLES.BASQUE ? 0.6 : 1;
+  let nearest = null;
+  let nearestDistSq = snapRadius * snapRadius;
+
+  for (const offset of SPAWN_OFFSETS) {
+    const px = offset.x;
+    const py = Math.round(offset.y * yScale);
+    const dx = x - px;
+    const dy = y - py;
+    const distSq = dx * dx + dy * dy;
+    if (distSq <= nearestDistSq) {
+      nearestDistSq = distSq;
+      nearest = { x: px, y: py };
+    }
+  }
+
+  return nearest;
+}
+
 /**
  * 把图层中心约束在画布内（P0-3 边界约束）
  * 边距按当前缩放后的盒子半径留白，贴纸不会被拖出画布消失。
@@ -370,6 +404,8 @@ module.exports = {
   changeFlavor,
   getSpawnPoint,
   clampLayerPosition,
+  findSnapPoint,
+  SNAP_RADIUS_RPX,
   STICKER_BOX_RPX,
   EditorHistory
 };

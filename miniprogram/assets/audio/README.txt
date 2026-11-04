@@ -1,87 +1,88 @@
-生日歌音频资源说明与获取指南
+庆祝曲目音频资源说明与获取指南
 ================================
 
 ## 当前状态（v1 阶段）
-`assets/audio/` 目录下**尚未放入**真实的 birthday-song.mp3 文件。
+已接入真实曲目：celebration-song.mp3（Pixabay 下载，69 秒，含人声，整首播完才切吹蜡烛阶段）。
 组件 `components/celebration-ritual/index.js` 中引用路径为：
-  '/assets/audio/birthday-song.mp3'
+  '/assets/audio/celebration-song.mp3'
 
-目前已做兜底处理：音频文件不存在时，wx.createInnerAudioContext 触发 onError，
+目前已做兜底处理：音频文件不存在或播放失败时，wx.createInnerAudioContext 触发 onError，
 3 秒后自动跳过 singing 阶段进入 blowing（吹蜡烛），不会卡死或报错。
 
-## 推荐方案（已调研确认）：Freesound 770325 CC0 音源
+**待办（非阻塞）**：utils/lyrics-sync.js 的歌词时间戳目前是按 69 秒【均匀四分】铺开
+（0s/18s/36s/54s），不是逐句精确对齐这首歌实际唱到对应句的瞬间。如果想要更精准的
+"唱到哪句、歌词卡点正好亮哪句"效果，需要实际听一遍这首歌记录每句出现的秒数，再去改时间戳。
+不精确对齐不影响流程走通（切换到吹蜡烛阶段靠 onEnded 整首播完触发，不依赖歌词时间戳）。
 
-### 基本信息
-- 链接：https://freesound.org/s/770325/
-- 标题：Happy Birthday, by Group of Children
-- 上传者：beautifuldaymonster1968
-- 时长：0:20.767 秒
-- 格式：WAV 44.1kHz 16bit Stereo（下载后需转 MP3）
-- 授权：**Creative Commons 0 (CC0)** 
-  原文："You can copy, modify, distribute and perform the sound, 
-         even for commercial purposes, all without the need of asking permission."
+注意：目录下还留有一个历史文件 birthday-song.mp3（499KB，2026-10-16 写入），
+来源和授权状态未经核实，**不要直接当作可商用素材使用**。是否保留/删除/核实它的来源，
+由你自行决定；本次改动不会自动引用或删除它。
 
-### 音质说明（重要，请先试听再决定）
-这是一位 56 岁女性刻意模仿童声跑调的演唱，有气声、off-pitch、业余感。
-上传者描述："mimicking the inexpert, off-pitch, breathy way a GROUP of young children sing"
-**不是**专业录音棚的完美演唱版本，而是故意做出的"不完美童真感"。
+## 选曲要求已放宽（重要）
+不要求必须是字面意义的"生日歌"。只要求：
+1. 寓意好（适合恋人仪式场景的温暖/庆祝/祝福氛围）
+2. 免费，且授权明确允许商用、不要求强制署名（最好是 CC0 / 公有领域 / 平台免署名商用协议）
 
-对恋人仪式产品的适配性需要你自己判断：
-- ✅ 优点：真实童趣、温馨、不做作，CC0 授权零风险
-- ⚠️ 考虑点：跑调感是否契合产品"浪漫精致"调性
+歌词高亮功能（utils/lyrics-sync.js）**保留**，但歌词内容不要求是"祝你生日快乐"字面歌词——
+可以保留现状（4 句祝福语 + 第4句插入寿星昵称），也可以换成任意寓意好的中文祝福短句，
+只要时间戳和实际选定的曲目对得上即可（见下方"接入步骤"第 3 步）。
 
-### 如何获取并接入
-1. 访问 https://freesound.org/s/770325/
-2. 注册/登录 Freesound 账号（免费）
-3. 点击 "Download" 按钮，下载 WAV 文件
-4. 用格式转换工具（如 ffmpeg / Audacity / 在线转换器）转为 MP3：
-   命令示例（如果有 ffmpeg）：
-     ffmpeg -i 770325__beautifuldaymonster1968__happy-birthday.wav -b:a 192k birthday-song.mp3
-5. 将转换后的 birthday-song.mp3 放入本目录（assets/audio/）
-6. 更新 utils/lyrics-sync.js 中 DEFAULT_LYRICS 的时间戳，对齐真实音频的歌词出现时刻
-   （当前时间戳是占位猜测值，需实际试听后调整）
+## 推荐方案：Pixabay Music（最省事，免费、免署名、可商用）
 
-### 许可证存档
-为符合开源项目规范和未来合规审计，请在完成下载后：
-- 在本目录创建子文件夹 license/
-- 保存 Freesound 770325 页面截图（显示 CC0 标识）或将本 README 作为许可证明留存
-- CC0 无需在产品内署名，但建议在代码仓库保留来源记录
+### 为什么选它
+- Pixabay 站内所有音乐统一遵循 Pixabay Content License：免费下载、商用免署名、无版税。
+- 不需要逐条核实每首曲子的授权细节（不像 Freesound 要逐条看单曲的 CC 协议版本），
+  省掉"这首到底是 CC0 还是 CC-BY"的判断成本。
+- 曲库里有现成的 "happy birthday" / "birthday instrumental" / "celebration" 类目曲目，
+  纯音乐/人声皆有，选择面广。
 
-## 备选方案
+### 获取步骤
+1. 访问 https://pixabay.com/music/search/happy%20birthday/
+   （或搜索 "celebration"/"birthday instrumental"/"congratulations" 等寓意相近的关键词）
+2. 试听，挑一首时长、情绪、人声/纯乐器都符合预期的曲目
+   （纯乐器版本更保险：完全不涉及"歌词跑调"之类的演唱质量问题）
+3. 点击对应曲目的 Download 按钮（Pixabay 下载音乐不需要注册账号，但注册账号后下载体验更顺畐）
+4. 下载下来的文件重命名为 celebration-song.mp3，放入本目录（assets/audio/）
+5. 试听选定曲目，记录关键祝福语/情绪节点的出现时刻（秒数），
+   更新 miniprogram/utils/lyrics-sync.js 的 DEFAULT_LYRICS 时间戳，
+   使歌词高亮和实际曲目节奏对上（当前时间戳是占位值，必须按新曲目重新校准）
+6. 若选的是纯乐器曲目（无人声歌词），可以把 DEFAULT_LYRICS 改成任意寓意好的祝福短句
+   （比如"愿你被这个世界温柔以待" / "今天也要和你一起甜甜的"），不强制对应"生日快乐"字面
 
-### 方案 B：Suno 付费版生成中文演唱（v1.5 升级项）
-- 用 Suno Pro/Premier 订阅，生成"祝你生日快乐[名字]"中文演唱版
-- 依据 Suno 服务条款，付费用户拥有生成歌曲并可商用
-- 优点：中文演唱、可定制、音质专业
-- 成本：需订阅 + 数分钟生成时间
-- 注意：保留生成记录和订阅付费凭证，应对潜在版权质疑
+### 下载时请确认
+- 曲目详情页上明确显示 "Free Download" 且协议页（pixabay.com/service/license-summary/）
+  仍是现行的 Content License（免费商用免署名）
+- 若该曲目页面注明任何额外限制（极少数例外情况），不要使用，换下一首
 
-### 方案 C：自行录制（最干净）
-- 人声录制"祝你生日快乐"（旋律和歌词均属公有领域，无版权风险）
-- 可叠加 OrangeFreeSounds CC BY 4.0 伴奏（https://orangefreesounds.com/happy-birthday-instrumental/）
-- 使用 CC BY 4.0 素材需在"关于/致谢"页署名
-- 优点：完全自有版权、最适配产品调性
-- 成本：需录音设备和混音工时
+## 备选方案（如果 Pixabay 曲库没有满意的）
+
+### 方案 B：Chosic.com 免费曲库
+- https://www.chosic.com/free-music/all/?attribution=no&sort=
+- 筛选"无需署名"（attribution=no）的曲目，同样免费可商用
+- 下载前确认单曲页面的授权说明（Chosic 大多数曲目标注"免署名可商用，反链接可选"）
+
+### 方案 C：Freesound CC0 曲目（需逐条核实授权）
+- https://freesound.org/s/770325/ （Happy Birthday, by Group of Children，CC0）
+- 注意：CC0 需要逐条核实每首曲子的授权标注，不如 Pixabay/Chosic 省事
+- 格式通常是 WAV，需要自行转 MP3（ffmpeg / Audacity / 在线转换器）
+
+### 方案 D：自行录制（最干净，但需要录音设备和工时）
+- 人声录制任意寓意好的祝福短句或旋律（公有领域旋律无版权风险）
+- 完全自有版权，不依赖第三方授权条款，适合长期稳定使用
 
 ## 不可使用的资源（合规红线）
 ❌ YouTube 音频库"标准许可"曲目（仅限 YouTube 平台内使用，不能用于小程序）
-❌ 市面儿歌合集中的演唱录音（录音制作者享有邻接权，未授权商用有风险）
+❌ 市面儿歌/生日歌合集中的演唱录音（录音制作者享有邻接权，未授权商用有风险）
 ❌ 剪映 AI 音乐（服务条款授予剪映"永久独占许可"，商用有冲突）
-❌ 来源不明的"免费下载站"MP3（盗版风险）
+❌ 来源不明的"免费下载站"MP3（盗版风险，目录里现存的 birthday-song.mp3 若来源不明，同样不建议直接用）
 
-## 版权说明（调研依据）
-"Happy Birthday to You" 歌曲本身：
-- 旋律和原词于 2016 年经美国联邦法院判决确认为公有领域（Warner/Chappell 版权案）
-- Hill 姊妹 1893 年创作，依著作权法保护期（作者逝世后 50/70 年），全球范围已过期
-- 中文"祝你生日快乐"短句属通用名词/标语，不受著作权保护（台湾智财局 1141205 号解释）
-
-实际录音文件的权利：
-- 即使旋律/词公有领域，具体的"录音"仍享有录音制作者权（邻接权）
-- 必须使用明确授权的录音（CC0/CC BY）或自有录音，不能随意抓取他人录制的版本
-
-调研报告完整版见项目根目录 docs/ 或团队知识库。
+## 版权背景说明（供参考，非必读）
+"Happy Birthday to You" 歌曲旋律和英文原词本身，已于 2016 年经美国联邦法院判决确认为公有领域
+（Warner/Chappell 版权案），中文"祝你生日快乐"短句也属通用名词/标语，不受著作权保护。
+但即便旋律/词公有领域，具体的"录音文件"仍可能享有录音制作者权（邻接权）——
+这正是为什么要选 Pixabay/Chosic 这类"平台统一授权"的曲库，而不是随便抓一个网上找到的 MP3。
 
 ---
-最后更新：2026-10-16
-调研执行：workbuddy
-技术接入：AI assistant
+最后更新：2026-11-03
+说明：选曲范围已从"必须是生日歌"放宽为"寓意好 + 免费可商用"，接入逻辑同步解耦，
+换曲只需替换文件 + 校准 lyrics-sync.js 时间戳，无需改动组件逻辑。

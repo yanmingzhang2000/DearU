@@ -68,6 +68,22 @@
   z-index: 1;
 }
 
+/* P2-2：拖拽吸附提示点——命中建议落点时淡淡发光，纯视觉辅助，不参与触摸事件 */
+.snap-hint {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 24rpx;
+  height: 24rpx;
+  margin-left: -12rpx;
+  margin-top: -12rpx;
+  border-radius: 50%;
+  background: rgba(194, 77, 135, 0.35);
+  box-shadow: 0 0 16rpx rgba(194, 77, 135, 0.5);
+  pointer-events: none;
+  z-index: 5;
+}
+
 /* P0-4：选中图层工具条 */
 .layer-toolbar {
   display: flex;

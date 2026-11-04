@@ -73,7 +73,12 @@ Component({
     
     // 手势状态（内部）
     _touchStartPos: null,
-    _prevTouches: null
+    _prevTouches: null,
+
+    // P2-2：拖拽吸附提示点（命中时显示淡淡的高亮圆点，辅助摆放不强制）
+    snapHintVisible: false,
+    snapHintX: 0,
+    snapHintY: 0
   },
 
   lifetimes: {
@@ -354,6 +359,17 @@ Component({
         });
         // P0-3：边界约束，拖不出画布
         cakeEditor.clampLayerPosition(layer, this.containerBounds);
+
+        // P2-2：拖拽吸附引导——离建议落点足够近时自动对齐，辅助摆放不强制。
+        // 吸附只在单指拖拽（移动位置）时生效，双指缩放/旋转不参与吸附判断。
+        const snap = cakeEditor.findSnapPoint(layer.x, layer.y, this.cakeState.style);
+        if (snap) {
+          layer.x = snap.x;
+          layer.y = snap.y;
+          this.setData({ snapHintVisible: true, snapHintX: snap.x, snapHintY: snap.y });
+        } else if (this.data.snapHintVisible) {
+          this.setData({ snapHintVisible: false });
+        }
       } else if (e.touches.length === 2) {
         // 双指缩放+旋转
         const pinch = gesture.detectPinch(e.touches, this.data._prevTouches);
@@ -377,7 +393,8 @@ Component({
       if (this.properties.readonly) return;
       this.setData({
         _touchStartPos: null,
-        _prevTouches: null
+        _prevTouches: null,
+        snapHintVisible: false // P2-2：松手后吸附提示点隐藏
       });
       this._pushHistory();
       // 手指松开，拖拽保护解除

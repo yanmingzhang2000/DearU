@@ -25,6 +25,10 @@
       catchtouchmove="onCanvasTouchMove"
       catchtouchend="onCanvasTouchEnd">
     </canvas>
+
+    <!-- P2-2：拖拽吸附提示点——命中建议落点时淡淡高亮一下，纯辅助，不拦截任何触摸事件 -->
+    <view wx:if="{{snapHintVisible}}" class="snap-hint"
+          style="transform: translate({{snapHintX}}rpx, {{snapHintY}}rpx);"></view>
   </view>
 
   <!-- P0-4：选中图层工具条（按钮化操作；选中贴纸/文字后出现，点空白处消失） -->
