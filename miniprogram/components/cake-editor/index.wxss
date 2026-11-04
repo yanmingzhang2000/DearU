@@ -9,10 +9,10 @@
   position: relative;
   width: 100%;
   height: 600rpx;
-  background: #fff8fb;
+  background: #fffdf8;
   border-radius: 24rpx;
   overflow: hidden;
-  border: 2rpx solid #f7d3e2;
+  border: 2rpx solid #ffd9e6;
 }
 
 .cake-base {
@@ -38,7 +38,7 @@
 }
 
 .sticker-layer.selected {
-  outline: 4rpx dashed #c24d87;
+  outline: 4rpx dashed #e8768f;
   border-radius: 8rpx;
 }
 
@@ -78,8 +78,8 @@
   margin-left: -12rpx;
   margin-top: -12rpx;
   border-radius: 50%;
-  background: rgba(194, 77, 135, 0.35);
-  box-shadow: 0 0 16rpx rgba(194, 77, 135, 0.5);
+  background: rgba(232, 118, 143, 0.35);
+  box-shadow: 0 0 16rpx rgba(232, 118, 143, 0.5);
   pointer-events: none;
   z-index: 5;
 }
@@ -98,8 +98,8 @@
   height: 64rpx;
   line-height: 64rpx;
   border-radius: 32rpx;
-  background: #fff0f6;
-  color: #a43d70;
+  background: #ffeef3;
+  color: #e8768f;
   border: none;
 }
 
@@ -108,8 +108,8 @@
 }
 
 .layer-op.danger {
-  background: #ffe5e5;
-  color: #c14468;
+  background: #ffe3df;
+  color: #d9534f;
 }
 
 /* 底胚选择器 */
@@ -119,7 +119,7 @@
 
 .toolbar-label {
   display: block;
-  color: #9c7d8c;
+  color: #9c8a86;
   font-size: 24rpx;
   margin-bottom: 12rpx;
 }
@@ -140,8 +140,8 @@
 }
 
 .base-option.active {
-  border-color: #c24d87;
-  background: #fff0f6;
+  border-color: #ffc233;
+  background: #fff3c4;
 }
 
 .base-thumb {
@@ -153,7 +153,7 @@
 .base-label {
   margin-top: 8rpx;
   font-size: 22rpx;
-  color: #73445c;
+  color: #8a5a52;
 }
 
 /* 口味色块 */
@@ -161,7 +161,7 @@
   width: 80rpx;
   height: 80rpx;
   border-radius: 50%;
-  border: 2rpx solid #f7d3e2;
+  border: 2rpx solid #ffd9e6;
 }
 
 .base-option.disabled {
@@ -171,7 +171,7 @@
 
 /* v1.1：底胚/口味区整体锁定态样式（decorating 阶段起，见规格第 4.1 节） */
 .base-selector-locked .toolbar-label {
-  color: #b79aa8;
+  color: #c9b8ae;
 }
 
 /* 笔刷选择器 */
@@ -194,8 +194,8 @@
 }
 
 .brush-option.active {
-  border-color: #c24d87;
-  background: #fff0f6;
+  border-color: #ffc233;
+  background: #fff3c4;
 }
 
 .brush-icon {
@@ -205,7 +205,7 @@
 .brush-label {
   margin-top: 6rpx;
   font-size: 22rpx;
-  color: #73445c;
+  color: #8a5a52;
 }
 
 /* P1-3：颜色调色板 */
@@ -231,7 +231,7 @@
 
 .color-dot.active {
   border-color: #fff;
-  outline: 4rpx solid #c24d87;
+  outline: 4rpx solid #e8768f;
 }
 
 .color-check {
@@ -251,7 +251,7 @@
 
 .width-label {
   font-size: 24rpx;
-  color: #73445c;
+  color: #8a5a52;
 }
 
 .width-option {
@@ -260,16 +260,16 @@
   gap: 10rpx;
   padding: 10rpx 24rpx;
   border-radius: 28rpx;
-  border: 2rpx solid #f7d3e2;
+  border: 2rpx solid #ffd9e6;
   background: #fff;
   font-size: 24rpx;
-  color: #73445c;
+  color: #8a5a52;
 }
 
 .width-option.active {
-  border-color: #c24d87;
-  background: #fff0f6;
-  color: #a43d70;
+  border-color: #ffc233;
+  background: #fff3c4;
+  color: #5c3a40;
   font-weight: bold;
 }
 
@@ -293,8 +293,8 @@
   height: 72rpx;
   line-height: 72rpx;
   border-radius: 36rpx;
-  background: #fff0f6;
-  color: #a43d70;
+  background: #ffeef3;
+  color: #e8768f;
   border: none;
 }
 
@@ -303,6 +303,6 @@
 }
 
 .action-btn.danger {
-  background: #ffe5e5;
-  color: #c14468;
+  background: #ffe3df;
+  color: #d9534f;
 }

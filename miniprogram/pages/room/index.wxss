@@ -1,6 +1,6 @@
 .loading-state {
   padding-top: 180rpx;
-  color: #9c7d8c;
+  color: #9c8a86;
   text-align: center;
   font-size: 28rpx;
 }
@@ -11,7 +11,7 @@
 
 .eyebrow {
   display: block;
-  color: #c24d87;
+  color: #e8768f;
   font-size: 24rpx;
   letter-spacing: 2rpx;
 }
@@ -24,7 +24,7 @@
 }
 
 .room-title {
-  color: #572b46;
+  color: #5c3a40;
   font-size: 52rpx;
   font-weight: 700;
 }
@@ -32,8 +32,8 @@
 .status-pill {
   padding: 12rpx 18rpx;
   border-radius: 999rpx;
-  color: #a43d70;
-  background: #ffe8f2;
+  color: #5c3a40;
+  background: #ffd166;
   font-size: 24rpx;
 }
 
@@ -43,11 +43,11 @@
   justify-content: space-between;
   margin-top: 24rpx;
   padding-bottom: 18rpx;
-  border-bottom: 2rpx solid #fff0f6;
+  border-bottom: 2rpx solid #ffe3ec;
 }
 
 .nickname-label {
-  color: #73445c;
+  color: #8a5a52;
   font-size: 26rpx;
 }
 
@@ -55,13 +55,13 @@
   flex: 1;
   margin-left: 20rpx;
   text-align: right;
-  color: #572b46;
+  color: #5c3a40;
   font-size: 26rpx;
 }
 
 .card-title {
   display: block;
-  color: #572b46;
+  color: #5c3a40;
   font-size: 32rpx;
   font-weight: 700;
 }
@@ -70,7 +70,7 @@
 .muted {
   display: block;
   margin-top: 14rpx;
-  color: #9c7d8c;
+  color: #9c8a86;
   font-size: 26rpx;
   line-height: 1.7;
 }
@@ -80,8 +80,8 @@
   justify-content: space-between;
   margin-top: 24rpx;
   padding-bottom: 18rpx;
-  border-bottom: 2rpx solid #fff0f6;
-  color: #73445c;
+  border-bottom: 2rpx solid #ffe3ec;
+  color: #8a5a52;
   font-size: 26rpx;
 }
 
@@ -95,8 +95,8 @@
   margin-top: 18rpx;
   padding: 18rpx;
   border-radius: 14rpx;
-  color: #a43d70;
-  background: #fff4f8;
+  color: #e8768f;
+  background: #ffeef3;
   font-size: 22rpx;
   word-break: break-all;
 }
@@ -108,7 +108,7 @@
 
 .error-title {
   display: block;
-  color: #c14468;
+  color: #d9534f;
   font-size: 34rpx;
   font-weight: 700;
 }
@@ -116,7 +116,7 @@
 .error-detail {
   display: block;
   margin-top: 20rpx;
-  color: #c14468;
+  color: #d9534f;
   font-size: 26rpx;
 }
 
@@ -125,8 +125,8 @@
 }
 
 .privacy-card {
-  border: 2rpx solid #f7d3e2;
-  background: #fffdfd;
+  border: 2rpx solid #ffd9e6;
+  background: #fffefb;
 }
 
 .share-title-preview {
@@ -134,19 +134,19 @@
   margin-top: 18rpx;
   padding: 18rpx;
   border-radius: 14rpx;
-  background: #fff4f8;
+  background: #ffeef3;
 }
 
 .share-title-label {
   display: block;
-  color: #c24d87;
+  color: #e8768f;
   font-size: 22rpx;
 }
 
 .share-title-text {
   display: block;
   margin-top: 8rpx;
-  color: #572b46;
+  color: #5c3a40;
   font-size: 26rpx;
   line-height: 1.6;
 }
@@ -154,7 +154,7 @@
 .share-title-edit-hint {
   display: block;
   margin-top: 8rpx;
-  color: #a43d70;
+  color: #e8768f;
   font-size: 22rpx;
 }
 
@@ -167,7 +167,7 @@
   z-index: 100;
   display: flex;
   align-items: flex-end;
-  background: rgba(63, 38, 53, 0.4);
+  background: rgba(74, 52, 40, 0.4);
 }
 
 .share-title-sheet {
@@ -185,16 +185,16 @@
   margin-top: 18rpx;
   padding: 20rpx;
   border-radius: 14rpx;
-  border: 2rpx solid #fff0f6;
-  background: #fff8fb;
-  color: #572b46;
+  border: 2rpx solid #ffe3ec;
+  background: #fffdf8;
+  color: #5c3a40;
   font-size: 26rpx;
   line-height: 1.6;
 }
 
 .share-title-option-active {
-  border-color: #e95d9b;
-  background: #ffe8f2;
+  border-color: #ffc233;
+  background: #fff3c4;
 }
 
 .share-title-custom {
@@ -207,8 +207,8 @@
   margin-top: 12rpx;
   padding: 18rpx;
   border-radius: 14rpx;
-  background: #fff8fb;
-  color: #3f2635;
+  background: #fffdf8;
+  color: #4a3428;
   font-size: 26rpx;
   min-height: 100rpx;
 }
