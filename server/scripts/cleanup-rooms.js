@@ -81,9 +81,30 @@ function runCleanup(db, { dryRun = false } = {}) {
   return expired;
 }
 
+// 把清理结果写一行追加日志，供用 cron/任务计划程序等后台方式调度时事后排查
+// （后台调度没人盯着终端，console.log 的内容调度结束就看不到了，必须落盘）。
+// 只在 CLI 入口调用，不进 runCleanup 本身，避免测试跑纯函数时产生这个副作用
+// （见 test/cleanup-rooms.test.js 直接 require 调用 runCleanup 的用法）。
+function appendCleanupLog(logPath, { dryRun, result }) {
+  const fs = require('node:fs');
+  const timestamp = new Date().toISOString();
+  const summary = result.length === 0
+    ? '没有到期需要清理的房间'
+    : `共${dryRun ? '将' : ''}清理 ${result.length} 个房间：` +
+      result.map((r) => `${r.roomId}(${r.status},${r.reason})`).join('; ');
+  const line = `[${timestamp}]${dryRun ? ' [dry-run]' : ''} ${summary}\n`;
+  try {
+    fs.appendFileSync(logPath, line, 'utf8');
+  } catch (err) {
+    // 日志写入失败不应该让清理任务本身失败（已经执行的软删除不应因为日志报错而回滚或报错退出）
+    console.error(`⚠️ 写入清理日志失败（${logPath}），不影响本轮清理结果：`, err.message);
+  }
+}
+
 if (require.main === module) {
   const dryRun = process.argv.includes('--dry-run');
   const dbPath = path.join(__dirname, '../data/dearu-v1.db');
+  const logPath = path.join(__dirname, '../data/cleanup.log');
 
   if (!require('node:fs').existsSync(dbPath)) {
     console.log(`ℹ️  数据库文件不存在（${dbPath}），无需清理。请先运行 npm run db:init 初始化数据库。`);
@@ -102,6 +123,7 @@ if (require.main === module) {
       });
       console.log(`${dryRun ? '🔍 [dry-run] 共 ' + result.length + ' 个房间将被清理（未实际执行）' : '✅ 共清理 ' + result.length + ' 个房间'}`);
     }
+    appendCleanupLog(logPath, { dryRun, result });
   } finally {
     db.close();
   }

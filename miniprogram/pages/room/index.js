@@ -148,8 +148,26 @@ Page({
       }
       this.applyRoom(payload);
     } catch (error) {
-      this.setData({ loading: false, room: null, error: error.message || '链接无效' });
+      this._handleLoadRoomError(error);
     }
+  },
+
+  // 验收标准【坏链接容错】（见 亲爱的你-产品规格与版本路线图.md §3.7）：
+  // 链接本身已经确定打不开（不存在/已撤销/无权访问），留在当前页面没有意义，
+  // 自动退回首页并提示；网络抽风（NETWORK_ERROR）或登录态问题不属于"坏链接"，
+  // 保留在当前页展示错误卡片，让用户可以点"重新尝试"，不强行踢回首页。
+  _handleLoadRoomError(error) {
+    const BAD_LINK_CODES = ['INVALID_LINK', 'ROOM_NOT_FOUND', 'ACCESS_DENIED'];
+    const code = error.code || '';
+    const message = error.message || '链接无效';
+
+    if (BAD_LINK_CODES.includes(code)) {
+      wx.showToast({ title: message || '链接无效', icon: 'none' });
+      wx.reLaunch({ url: '/pages/home/index' });
+      return;
+    }
+
+    this.setData({ loading: false, room: null, error: message });
   },
 
   applyRoom(payload) {
