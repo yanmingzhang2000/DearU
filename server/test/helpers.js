@@ -23,7 +23,10 @@ async function startTestServer() {
     '../src/routes/rooms',
     '../src/routes/invites',
     '../src/routes/analytics',
+    '../src/routes/dashboard',
     '../src/middleware/auth',
+    '../src/middleware/dashboard-auth',
+    '../src/utils/dashboard-metrics',
     '../src/utils/format',
     '../src/utils/wechat',
     '../src/auth'
